@@ -1,8 +1,12 @@
 FROM php:8.2-apache
 
 RUN apt-get update && apt-get install -y \
-    libzip-dev zip unzip \
-    && docker-php-ext-install pdo pdo_mysql
+    git unzip curl zip \
+    libzip-dev \
+    && docker-php-ext-install pdo pdo_mysql zip
+
+# install composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 RUN a2enmod rewrite
 
@@ -15,10 +19,11 @@ RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' \
 
 COPY . /var/www/html
 
-# permissions (مهم جداً لLaravel)
-RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 755 /var/www/html \
-    && chmod -R 775 /var/www/html/storage \
-    && chmod -R 775 /var/www/html/bootstrap/cache
+WORKDIR /var/www/html
+
+# 👇 أهم سطر
+RUN composer install --no-dev --optimize-autoloader
+
+RUN chown -R www-data:www-data /var/www/html
 
 EXPOSE 80
