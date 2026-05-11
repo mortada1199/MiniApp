@@ -74,7 +74,7 @@
         </div>
     </div>
 
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    {{-- <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -89,6 +89,6 @@
             }
 
         });
-    </script>
+    </script> --}}
 
 @endsection
