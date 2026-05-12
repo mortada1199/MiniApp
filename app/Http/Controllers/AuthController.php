@@ -23,6 +23,7 @@ class AuthController extends Controller
             'telegram_init_data' => 'required',
         ]);
 
+
         $response = Http::post(
             'https://pqsoh-196-1-227-87.run.pinggy-free.link/tma/authenticate',
             [
@@ -31,7 +32,7 @@ class AuthController extends Controller
                 'telegram_init_data' => $request->telegram_init_data,
             ]
         );
-        // dd($response);
+        dd($response);
 
         if ($response->successful()) {
             $data = $response->json();
