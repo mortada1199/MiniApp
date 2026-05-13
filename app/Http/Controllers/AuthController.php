@@ -24,19 +24,18 @@ class AuthController extends Controller
         ]);
 
         $response = Http::post(
-            'https://sfctf-196-1-227-87.run.pinggy-free.link/tma/authenticate',
+            'https://tyjtp-196-1-227-87.run.pinggy-free.link/tma/authenticate',
             [
                 'username' => $request->username,
                 'pin' => $request->pin,
                 'telegram_init_data' => $request->telegram_init_data,
             ]
         );
-       dd($response);
-
+    //    dd($response);
         if ($response->successful()) {
             $data = $response->json();
-            Session::put('token', $data['token'] ?? null);
-            Session::put('user', $data['user'] ?? null);
+            // Session::put('token', $data['token'] ?? null);
+            // Session::put('user', $data['user'] ?? null);
             Session::put('accounts', $data['accounts'] ?? []);
             return redirect()->route('dashboard');
         }
