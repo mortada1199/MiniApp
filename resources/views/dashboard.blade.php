@@ -116,7 +116,7 @@
                             <div class="balance-item">
 
                                 <div class="label">
-                                    الرصيد المتوفر
+                                     الحالة 
                                 </div>
 
                                 <div class="value">
