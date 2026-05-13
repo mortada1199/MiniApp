@@ -120,7 +120,7 @@
                                 </div>
 
                                 <div class="value">
-                                    {{ $account['accountRest'] }}
+                                    {{ $account['accountStatus'] }}
                                 </div>
 
                             </div>
