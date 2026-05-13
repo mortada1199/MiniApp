@@ -119,6 +119,7 @@
                                      الحالة 
                                 </div>
 
+                                
                                 <div class="value">
                                     {{ $account['accountStatus'] }}
                                 </div>
