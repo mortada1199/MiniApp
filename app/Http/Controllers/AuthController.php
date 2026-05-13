@@ -16,35 +16,33 @@ class AuthController extends Controller
     public function login(Request $request)
     {
 
-        $request->validate([
+        // $request->validate([
 
-            'username' => 'required',
-            'pin' => 'required',
-            'telegram_init_data' => 'required',
-        ]);
+        //     'username' => 'required',
+        //     'pin' => 'required',
+        //     'telegram_init_data' => 'required',
+        // ]);
 
+        // $response = Http::post(
+        //     'https://butcg-196-1-227-87.run.pinggy-free.link/tma/authenticate',
+        //     [
+        //         'username' => $request->username,
+        //         'pin' => $request->pin,
+        //         'telegram_init_data' => $request->telegram_init_data,
+        //     ]
+        // );
+        // dd($response);
 
-        $response = Http::post(
-            'https://butcg-196-1-227-87.run.pinggy-free.link/tma/authenticate',
-            [
-                'username' => $request->username,
-                'pin' => $request->pin,
-                'telegram_init_data' => $request->telegram_init_data,
-            ]
-        );
-        dd($response);
-
-        if ($response->successful()) {
-            $data = $response->json();
-            Session::put('token', $data['token'] ?? null);
-            Session::put('user', $data['user'] ?? null);
-            Session::put('', $data[''] ?? null);
-            return redirect()
-                ->route('dashboard');
-       }
-        return back()->withErrors([
-            'login' => 'بيانات الدخول غير صحيحة',
-        ]);
+        // if ($response->successful()) {
+        //     $data = $response->json();
+        //     Session::put('token', $data['token'] ?? null);
+        //     Session::put('user', $data['user'] ?? null);
+        //     Session::put('accounts', $data['accounts'] ?? []);
+            return redirect()->route('dashboard');
+        // }
+        // return back()->withErrors([
+        //     'login' => 'بيانات الدخول غير صحيحة',
+        // ]);
     }
 
     public function logout()
