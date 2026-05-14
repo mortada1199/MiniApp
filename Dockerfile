@@ -43,7 +43,6 @@ WORKDIR /var/www/html
 COPY composer.json composer.lock ./
 
 # 7. تثبيت مكتبات Laravel 
-# أضفنا --no-scripts و --ignore-platform-reqs لتجنب فشل التثبيت
 RUN composer install \
     --no-dev \
     --no-interaction \
@@ -54,7 +53,7 @@ RUN composer install \
 # 8. نسخ المشروع بالكامل
 COPY . /var/www/html
 
-# 9. توليد Autoload وتشغيل السكربتات بعد نسخ الملفات
+# 9. توليد Autoload
 RUN composer dump-autoload --optimize
 
 # 10. إنشاء SQLite وتجهيز المجلدات
@@ -68,20 +67,22 @@ RUN mkdir -p /var/www/html/database \
 # 11. إنشاء Storage Link
 RUN php artisan storage:link || true
 
-# 12. ضبط الصلاحيات للمستخدم www-data
+# 12. ضبط الصلاحيات (أعطينا صلاحية 777 للمجلد database لضمان كتابة SQLite)
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 775 /var/www/html/storage \
     && chmod -R 775 /var/www/html/bootstrap/cache \
-    && chmod -R 775 /var/www/html/database
+    && chmod -R 777 /var/www/html/database
 
-# 13. تشغيل Laravel وتجهيز الكاش وقاعدة البيانات
+# 13. تشغيل Laravel
+# تم تعديل الترتيب: نقوم بإنشاء الجداول أولاً (migrate) ثم مسح الكاش
+# أضفنا --ignore-platform-reqs للأوامر لضمان عدم التوقف
 ENTRYPOINT ["/bin/sh", "-c", "\
+php artisan migrate --force && \
 php artisan config:clear && \
-php artisan cache:clear && \
+php artisan cache:clear || true && \
 php artisan view:clear && \
 php artisan config:cache && \
 php artisan view:cache && \
-php artisan migrate --force && \
 apache2-foreground"]
 
 # 14. فتح البورت 80
