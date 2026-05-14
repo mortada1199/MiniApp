@@ -10,12 +10,12 @@ class BankingController extends Controller
 {
     public function intFund()
     {
-        $accounts = Session::get('accounts', []);
-        $accounts = array_filter($accounts, function ($account) {
-            $accountNo = (string) $account['accountNo'];
-            return isset($accountNo[13]) && $accountNo[13] === '1';
+        $allAccounts = session('accounts', []);
+        $filteredAccounts = array_filter($allAccounts, function ($account) {
+            $accountNo = trim((string) ($account['accountNo'] ?? ''));
+            return strlen($accountNo) >= 14 && $accountNo[13] === '1';
         });
-
+        $accounts = collect($filteredAccounts)->values()->all();
         return view('pages.internal-fund', compact('accounts'));
     }
 
