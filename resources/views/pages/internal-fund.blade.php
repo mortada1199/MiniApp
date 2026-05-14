@@ -61,7 +61,7 @@
 
                     <select id="accountFrom" name="accountFrom" class="form-control" required>
 
-                        @foreach (session('accounts') as $account)
+                        @foreach ($accounts as $account)
                             <option value="{{ $account['accountNo'] }}">
 
                                 {{ $account['accountNo'] }}
@@ -85,7 +85,7 @@
 
                     <select id="accountTo" name="accountTo" class="form-control" required>
 
-                        @foreach (session('accounts') as $account)
+                        @foreach ($accounts as $account)
                             <option value="{{ $account['accountNo'] }}">
 
                                 {{ $account['accountNo'] }}
