@@ -2,17 +2,26 @@
 @section('title', 'تحويل داخلي')
 
 @section('content')
+    <style>
+        /* تنسيق زر التحميل */
+        .btn-primary:disabled {
+            background-color: #2d8a4e;
+            border-color: #2d8a4e;
+            opacity: 0.8;
+            cursor: not-allowed;
+        }
+
+        .fa-spinner {
+            margin-left: 8px;
+        }
+    </style>
 
     <div class="page-header">
-
         <a href="{{ route('dashboard') }}" class="back-btn">
             <i class="fas fa-arrow-right"></i>
         </a>
-
         <h2>تحويل داخلي</h2>
-
         <div style="width:36px"></div>
-
     </div>
 
     <div class="page-content fade-in">
@@ -26,20 +35,17 @@
 
         @if (session('error'))
             <div class="alert alert-error">
+                <i class="fas fa-exclamation-circle"></i>
                 {{ session('error') }}
             </div>
         @endif
 
         @if ($errors->any())
-
             <div class="alert alert-error">
-
                 @foreach ($errors->all() as $e)
                     <div>{{ $e }}</div>
                 @endforeach
-
             </div>
-
         @endif
 
         <div class="info-card">
@@ -47,83 +53,69 @@
                 <i class="fas fa-exchange-alt"></i>
                 تحويل داخلي
             </h3>
-            <form method="POST" action="{{ route('internal-fund.submit') }}">
 
+            <form id="transferForm" method="POST" action="{{ route('internal-fund.submit') }}">
                 @csrf
 
                 <!-- From Account -->
-
                 <div class="form-group">
-
-                    <label for="accountFrom">
-                        من حساب
-                    </label>
-
+                    <label for="accountFrom">من حساب</label>
                     <select id="accountFrom" name="accountFrom" class="form-control" required>
-
                         @foreach ($accounts as $account)
                             <option value="{{ $account['accountNo'] }}">
-
-                                {{ $account['accountNo'] }}
-                                -
-                                {{ $account['ledModelDesc'] }}
-
+                                {{ $account['accountNo'] }} - {{ $account['ledModelDesc'] }}
                             </option>
                         @endforeach
-
                     </select>
-
                 </div>
 
                 <!-- To Account -->
-
                 <div class="form-group">
-
-                    <label for="accountTo">
-                        إلى حساب
-                    </label>
-
+                    <label for="accountTo">إلى حساب</label>
                     <select id="accountTo" name="accountTo" class="form-control" required>
-
                         @foreach ($accounts as $account)
                             <option value="{{ $account['accountNo'] }}">
-
-                                {{ $account['accountNo'] }}
-                                -
-                                {{ $account['ledModelDesc'] }}
-
+                                {{ $account['accountNo'] }} - {{ $account['ledModelDesc'] }}
                             </option>
                         @endforeach
-
                     </select>
-
                 </div>
 
                 <!-- Amount -->
-
                 <div class="form-group">
-
-                    <label for="amount">
-                        المبلغ
-                    </label>
-
+                    <label for="amount">المبلغ</label>
                     <input type="number" id="amount" name="amount" class="form-control" placeholder="أدخل المبلغ"
                         min="1" required>
-
                 </div>
 
-                <button type="submit" class="btn btn-primary">
-
-                    <i class="fas fa-exchange-alt"></i>
-
-                    تحويل
-
+                <button type="submit" id="submitBtn" class="btn btn-primary">
+                    <span id="btnText">
+                        <i class="fas fa-exchange-alt"></i>
+                        تحويل
+                    </span>
+                    <span id="btnLoader" style="display: none;">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        جاري التحويل...
+                    </span>
                 </button>
-
             </form>
-
         </div>
-
     </div>
+@endsection
 
+@section('scripts')
+    <script>
+        document.getElementById('transferForm').addEventListener('submit', function(e) {
+            const btn = document.getElementById('submitBtn');
+            const btnText = document.getElementById('btnText');
+            const btnLoader = document.getElementById('btnLoader');
+
+            // تعطيل الزر لمنع الإرسال المتكرر
+            btn.disabled = true;
+
+            // إخفاء النص الأصلي وإظهار علامة التحميل
+            btnText.style.display = 'none';
+            btnLoader.style.display = 'inline-block';
+        });
+    </script>
 @endsection
