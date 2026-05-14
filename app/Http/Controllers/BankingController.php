@@ -26,7 +26,7 @@ class BankingController extends Controller
         $token = Session::get('token');
         $response = Http::withToken($token)
             ->post(
-                'https://gdnpx-196-1-227-87.run.pinggy-free.link/tma/transfer',
+                'https://clvrh-196-1-227-87.run.pinggy-free.link/tma/transfer',
                 [
                     'accountFrom' => $request->accountFrom,
                     'accountTo' => $request->accountTo,
