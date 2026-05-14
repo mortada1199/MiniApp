@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Session;
 
 class BankingController extends Controller
@@ -11,7 +12,8 @@ class BankingController extends Controller
     {
         $accounts = Session::get('accounts', []);
         $accounts = array_filter($accounts, function ($account) {
-            return substr($account['accountNo'], 13, 1) == '1';
+            $accountNo = (string) $account['accountNo'];
+            return isset($accountNo[13]) && $accountNo[13] === '1';
         });
 
         return view('pages.internal-fund', compact('accounts'));
