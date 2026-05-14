@@ -24,7 +24,7 @@ class AuthController extends Controller
         ]);
 
         $response = Http::post(
-            'https://tyjtp-196-1-227-87.run.pinggy-free.link/tma/authenticate',
+            'https://gdnpx-196-1-227-87.run.pinggy-free.link/tma/authenticate',
             [
                 'username' => $request->username,
                 'pin' => $request->pin,
