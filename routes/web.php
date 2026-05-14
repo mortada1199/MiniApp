@@ -16,10 +16,14 @@ Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 // Route::middleware(\App\Http\Middleware\CheckAuthenticated::class)->group(function () {
 
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-Route::get('/internal-fund', [BankingController::class, 'intFund'])->name('internal-fund'); // تحويل داخلي
 Route::get('/accounts', [BankingController::class, 'accList'])->name('accounts');//اظهار الحسابات 
+Route::get('/internal-fund', [BankingController::class, 'intFund'])->name('internal-fund'); // تحويل داخلي
+Route::post('/internal-fund', [BankingController::class, 'submitIntFund'])->name('internal-fund.submit');
 Route::get('/transfer-bban', [BankingController::class, 'tranToBBAN'])->name('transfer-bban');
 Route::post('/transfer-bban/verify', [BankingController::class, 'verifyBban'])->name('transfer-bban.verify');
+
+
+
 
 // Route::get('/generate-token', [BankingController::class, 'generateToken'])->name('generate-token');
 // Route::get('/change-pin', [BankingController::class, 'changePin'])->name('change-pin');

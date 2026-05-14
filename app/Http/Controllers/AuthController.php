@@ -34,7 +34,7 @@ class AuthController extends Controller
     //    dd($response);
         if ($response->successful()) {
             $data = $response->json();
-            // Session::put('token', $data['token'] ?? null);
+             Session::put('token', $data['token'] ?? null);
             // Session::put('user', $data['user'] ?? null);
             Session::put('accounts', $data['accounts'] ?? []);
             return redirect()->route('dashboard');

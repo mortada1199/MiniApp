@@ -8,7 +8,46 @@ class BankingController extends Controller
 {
     public function intFund()
     {
-        return view('pages.internal-fund');
+        $accounts = Session::get('accounts', []);
+        $accounts = array_filter($accounts, function ($account) {
+            return substr($account['accountNo'], 13, 1) == '1';
+        });
+
+        return view('pages.internal-fund', compact('accounts'));
+    }
+
+    public function submitIntFund(Request $request)
+    {
+        $request->validate([
+            'accountFrom' => 'required',
+            'accountTo' => 'required',
+            'amount' => 'required|numeric|min:1',
+        ]);
+        $token = Session::get('token');
+        $response = Http::withToken($token)
+            ->post(
+                'https://tyjtp-196-1-227-87.run.pinggy-free.link/tma/transfer',
+                [
+                    'accountFrom' => $request->accountFrom,
+                    'accountTo' => $request->accountTo,
+                    'amount' => $request->amount,
+                    'remarkCredit' => 'Salary May',
+                    'remarkDebit' => 'Transfer to checking',
+                ]
+            );
+        // dd($response->status(), $response->body());
+
+        if ($response->successful()) {
+            return back()->with(
+                'success',
+                'تم التحويل الداخلي بنجاح'
+            );
+        }
+
+        return back()->with(
+            'error',
+            'حدث خطأ في عملية التحويل'
+        );
     }
 
     public function accList()
@@ -95,17 +134,6 @@ class BankingController extends Controller
     //     ]);
     //     return back()->with('success', 'تم التحويل الخارجي بنجاح');
     // }
-
-    public function submitIntFund(Request $request)
-    {
-        $request->validate([
-            'from_account' => 'required',
-            'to_account' => 'required',
-            'amount' => 'required|numeric|min:1',
-        ]);
-
-        return back()->with('success', 'تم التحويل الداخلي بنجاح');
-    }
 
     public function payment()
     {
