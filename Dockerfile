@@ -56,26 +56,26 @@ COPY . /var/www/html
 # 9. توليد Autoload
 RUN composer dump-autoload --optimize
 
-# 10. إنشاء SQLite وتجهيز المجلدات
+# 10. إنشاء SQLite وتجهيز المجلدات وإنشاء ملف الـ log مسبقاً
 RUN mkdir -p /var/www/html/database \
     && touch /var/www/html/database/database.sqlite \
     && mkdir -p /var/www/html/storage/framework/cache \
     && mkdir -p /var/www/html/storage/framework/sessions \
     && mkdir -p /var/www/html/storage/framework/views \
-    && mkdir -p /var/www/html/storage/logs
+    && mkdir -p /var/www/html/storage/logs \
+    && touch /var/www/html/storage/logs/laravel.log
 
 # 11. إنشاء Storage Link
 RUN php artisan storage:link || true
 
-# 12. ضبط الصلاحيات (أعطينا صلاحية 777 للمجلد database لضمان كتابة SQLite)
+# 12. ضبط الصلاحيات وإعطاء الملكية الكاملة للمستخدم www-data على ملفات الكاش والـ logs
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 775 /var/www/html/storage \
     && chmod -R 775 /var/www/html/bootstrap/cache \
-    && chmod -R 777 /var/www/html/database
+    && chmod -R 777 /var/www/html/database \
+    && chmod 775 /var/www/html/storage/logs/laravel.log
 
 # 13. تشغيل Laravel
-# تم تعديل الترتيب: نقوم بإنشاء الجداول أولاً (migrate) ثم مسح الكاش
-# أضفنا --ignore-platform-reqs للأوامر لضمان عدم التوقف
 ENTRYPOINT ["/bin/sh", "-c", "\
 php artisan migrate --force && \
 php artisan config:clear && \
