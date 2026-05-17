@@ -40,13 +40,8 @@ class BankingController extends Controller
                     'remarkDebit' => 'Transfer to checking',
                 ]
             );
-        // dd($response->status(), $response->body());
-
         if ($response->successful()) {
-            // return back()->with(
-            //     'success',
-            //     'تم التحويل الداخلي بنجاح'
-            // );
+         
             return view('pages.receipt', compact('request','type'));
         }
 
