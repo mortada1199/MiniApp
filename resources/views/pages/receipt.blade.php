@@ -165,7 +165,7 @@
 
             <div class="data-item">
                 <div class="data-label">نوع الحركة</div>
-                <div class="data-value">{{ $transaction['type'] ?? 'التحويل الى حساب مصرفي آخر' }}</div>
+                <div class="data-value">{{ $type }}</div>
             </div>
 
             <div class="data-item">

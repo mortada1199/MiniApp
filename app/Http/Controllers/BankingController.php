@@ -21,6 +21,8 @@ class BankingController extends Controller
 
     public function submitIntFund(Request $request)
     {
+
+          $type = "تحويل داخلي ";
         $request->validate([
             'accountFrom' => 'required',
             'accountTo' => 'required',
@@ -45,7 +47,7 @@ class BankingController extends Controller
             //     'success',
             //     'تم التحويل الداخلي بنجاح'
             // );
-            return view('pages.receipt', compact('request'));
+            return view('pages.receipt', compact('request','type'));
         }
 
         return back()->with(
