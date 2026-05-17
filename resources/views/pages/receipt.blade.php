@@ -139,7 +139,7 @@
 
     <div class="brand-card">
         <div class="brand-logo-placeholder">
-            <i class="fas fa-circle-notch"></i> O-<span>cash</span>
+            <i class="fas fa-circle-notch"> اوكاش </i> 
         </div>
         <div class="brand-tagline">لكل الناس</div>
     </div>
@@ -155,7 +155,7 @@
         <div class="data-list">
             <div class="data-item">
                 <div class="data-label">رقم الحركة</div>
-                <div class="data-value">{{ $transaction['reference_no'] ?? '2605161145410895555' }}</div>
+                <div class="data-value">{{ $request['reference_no'] ?? '2605161145410895555' }}</div>
             </div>
 
             <div class="data-item">
@@ -170,32 +170,32 @@
 
             <div class="data-item">
                 <div class="data-label">من حساب</div>
-                <div class="data-value">{{ $transaction['from_account'] ?? '022408955550013101000' }}</div>
+                <div class="data-value">{{ $request['accountFrom'] }}</div>
             </div>
 
             <div class="data-item">
                 <div class="data-label">إلى حساب</div>
-                <div class="data-value">{{ $transaction['to_account'] ?? '022612952290013101000' }}</div>
+                <div class="data-value">{{ $request['accountTo'] }}</div>
             </div>
 
             <div class="data-item">
                 <div class="data-label">اسم العميل</div>
-                <div class="data-value">{{ $transaction['client_name'] ?? 'زينب سعيد عبدالله سعد' }}</div>
+                <div class="data-value">{{ session('accounts')[0]['cusShoName'] }}</div>
             </div>
 
             <div class="data-item">
                 <div class="data-label">رقم الهاتف المحمول</div>
-                <div class="data-value">{{ $transaction['phone'] ?? '-----' }}</div>
+                <div class="data-value">{{ $request['phone'] ?? '-----' }}</div>
             </div>
 
             <div class="data-item">
                 <div class="data-label">تعليقات</div>
-                <div class="data-value">{{ $transaction['notes'] ?? '-----' }}</div>
+                <div class="data-value">{{ $request['notes'] ?? '-----' }}</div>
             </div>
 
             <div class="data-item">
                 <div class="data-label">المبلغ</div>
-                <div class="data-value amount-value">{{ number_format($transaction['amount'] ?? 50000) }} SDG</div>
+                <div class="data-value amount-value">{{ number_format($request['amount'] ) }} SDG</div>
             </div>
         </div>
     </div>
