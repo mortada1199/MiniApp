@@ -33,7 +33,8 @@
                 </div>
             @endif
 
-            <form method="POST" action="{{ route('login.submit') }}">
+            <!-- أضفنا id للنموذج لتسهيل التحكم به في الجافاسكريبت -->
+            <form method="POST" action="{{ route('login.submit') }}" id="loginForm">
 
                 @csrf
 
@@ -61,12 +62,14 @@
 
                 </div>
 
-                <button type="submit" class="btn btn-primary">
-
-                    <i class="fas fa-sign-in-alt"></i>
-
-                    دخول
-
+                <!-- تم تعديل الزر وإضافة أيقونة التحميل المسبقة من FontAwesome -->
+                <button type="submit" class="btn btn-primary" id="submitBtn">
+                    <span id="btnText">
+                        <i class="fas fa-sign-in-alt"></i> دخول
+                    </span>
+                    <span id="btnSpinner" style="display: none;">
+                        <i class="fas fa-spinner fa-spin"></i> جاري التحميل...
+                    </span>
                 </button>
 
             </form>
@@ -79,16 +82,30 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
 
+            // كود التليجرام الخاص بك
             if (window.Telegram && Telegram.WebApp) {
-
                 Telegram.WebApp.ready();
-
-                document.getElementById('telegram_init_data').value =
-                    Telegram.WebApp.initData;
-
+                document.getElementById('telegram_init_data').value = Telegram.WebApp.initData;
             }
 
+            // كود تأثير التحميل عند إرسال النموذج
+            const loginForm = document.getElementById('loginForm');
+            const submitBtn = document.getElementById('submitBtn');
+            const btnText = document.getElementById('btnText');
+            const btnSpinner = document.getElementById('btnSpinner');
+
+            if (loginForm) {
+                loginForm.addEventListener('submit', function() {
+                    // 1. تعطيل الزر لمنع النقرات المتعددة
+                    submitBtn.disabled = true;
+                    
+                    // 2. إخفاء النص الافتراضي (دخول)
+                    btnText.style.display = 'none';
+                    
+                    // 3. إظهار أيقونة التحميل ونص (جاري التحميل...)
+                    btnSpinner.style.display = 'inline-block';
+                });
+            }
         });
     </script>
-
 @endsection
