@@ -31,11 +31,9 @@ class AuthController extends Controller
                 'telegram_init_data' => $request->telegram_init_data,
             ]
         );
-    //    dd($response)  ;
         if ($response->successful()) {
             $data = $response->json();
              Session::put('token', $data['token'] ?? null);
-            // Session::put('user', $data['user'] ?? null);
             Session::put('accounts', $data['accounts'] ?? []);
             return redirect()->route('dashboard');
         }
