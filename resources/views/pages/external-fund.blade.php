@@ -262,7 +262,7 @@
 
                 $.ajax({
                     // استخدام الـ Proxy المحلي لتفادي قيود المتصفح والـ CORS
-                    url: `/bank-api/customer/name/${customerNum}`, 
+                    url: `/bank-api/name/${customerNum}`, 
                     method: "GET",
                     headers: {
                         "X-CSRF-TOKEN": $('input[name="_token"]').val(),
