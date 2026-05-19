@@ -72,7 +72,7 @@ class BankingController extends Controller
 
     public function submiTExFund(Request $request)
     {
-        $type = 'التحويل الى عميل داخل البنك';
+        
         $request->validate([
             'from_account' => 'required',
             'bban' => 'required',
@@ -90,8 +90,9 @@ class BankingController extends Controller
             ]);
 
         if ($response->successful()) {
+            $type = 'التحويل الى عميل داخل البنك';
             $result = $response->json();
-            $transaction = [
+            $request = [
                 'reference_no' => $result['traceId'] ?? '260516'.rand(100000, 999999).'895555',
                 'date' => now()->format('d/m/Y h:i:s A'),
                 'type' => $type,
@@ -103,7 +104,7 @@ class BankingController extends Controller
                 'amount' => $request->amount,
             ];
 
-            return view('pages.receipt', compact('transaction'));
+            return view('pages.receipt', compact('request','type'));
         }
 
         $errorMessage = $response->json()['message'] ?? 'حدث خطأ في عملية التحويل، يرجى المحاولة لاحقاً';
