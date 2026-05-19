@@ -208,7 +208,6 @@
             padding: 12px;
             margin-bottom: 15px;
             text-align: right;
-            /* تعديل المحاذاة لليمين لتتناسق مع اللغة العربية */
         }
 
         .balance-box .label {
@@ -230,20 +229,23 @@
     <script>
         $(document).ready(function() {
 
-            // دالة تحديث الرصيد المتوفر بناءً على الخيار المحدد
+            // دالة تحديث الرصيد المتوفر بناءً على الحساب المختار من المتغير الممرر
             function updateBalance() {
-                let selected = $('#from_account option:selected');
-                let balance = selected.data('balance');
-                if (balance !== undefined) {
+                let selectedOption = $('#from_account option:selected');
+                let balance = selectedOption.data('balance');
+                
+                if (balance !== undefined && balance !== null) {
                     $('#available-balance').text(balance + ' SDG');
                 } else {
                     $('#available-balance').text('0.00 SDG');
                 }
             }
-
-            // ربط الحدث فوراً والتأكد من تشغيله عند التحميل الأول
-            $('#from_account').on('change', updateBalance);
+            
+            // تشغيل التحديث فوراً لعرض رصيد الحساب الافتراضي الأول عند فتح الصفحة
             updateBalance();
+
+            // الاستماع لتغيير الحساب المختار من القائمة وتحديث الرصيد أوتوماتيكياً
+            $('#from_account').on('change', updateBalance);
 
             // عند الضغط على زر التحقق
             $('#verify-btn').click(function() {
@@ -259,8 +261,8 @@
                 $('#ajax-error').hide();
 
                 $.ajax({
-                    // التوجيه إلى مسار محلي لتفادي حظر المتصفح لروابط الـ HTTP/Pinggy الخارجية
-                    url: `/bank-api/customer/name/${customerNum}`,
+                    // استخدام الـ Proxy المحلي لتفادي قيود المتصفح والـ CORS
+                    url: `/bank-api/customer/name/${customerNum}`, 
                     method: "GET",
                     headers: {
                         "X-CSRF-TOKEN": $('input[name="_token"]').val(),
@@ -269,8 +271,7 @@
                     success: function(response) {
                         if (response.success && response.name) {
                             $('#customer_name').val(response.name);
-                            $('#to_account').html(
-                                `<option value="${customerNum}">${customerNum}</option>`);
+                            $('#to_account').html(`<option value="${customerNum}">${customerNum}</option>`);
                             $('#remaining-fields').removeClass('disabled-group');
                             btn.prop('disabled', false).text('التحقق');
                         } else {
@@ -280,18 +281,16 @@
                     },
                     error: function(xhr) {
                         if (xhr.status === 401) {
-                            $('#ajax-error').text(
-                                "انتهت صلاحية الجلسة، يرجى إعادة تسجيل الدخول").show();
+                            $('#ajax-error').text("انتهت صلاحية الجلسة، يرجى إعادة تسجيل الدخول").show();
                         } else {
-                            $('#ajax-error').text(
-                                    "تعذر التحقق من رقم الحساب، يرجى مراجعة بيانات المستفيد")
-                                .show();
+                            $('#ajax-error').text("تعذر التحقق من رقم الحساب، يرجى مراجعة بيانات المستفيد").show();
                         }
                         btn.prop('disabled', false).text('التحقق');
                     }
                 });
             });
 
+            // قفل زر الإرسال عند الضغط لمنع تكرار العملية
             $('#transfer-form').submit(function() {
                 $('#submit-transfer-btn').prop('disabled', true).text('جاري إرسال طلب التحويل...');
             });
