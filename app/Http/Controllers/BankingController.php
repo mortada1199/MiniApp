@@ -111,32 +111,39 @@ class BankingController extends Controller
         return back()->with('error', $errorMessage)->withInput();
     }
 
+    use Illuminate\Support\Facades\Http;
+    use Illuminate\Support\Facades\Log;
+
     public function verifyCustomerProxy($customerNum)
     {
-        // سحب التوكن من السيشن بأمان
+        // 1. سحب التوكن من السيشن بأمان
         $apiToken = session('token');
 
-        // إصلاح الرابط: يجب استخدام علامات الاقتباس المزدوجة " " ليتم استبدال المتغير ديناميكياً
-        $apiUrl = "https://tztfn-196-1-227-87.run.pinggy-free.link/customer/name/{$customerNum}";
+        // 2. رابط السيرفر (تأكد أن tztfn هو الرابط الشغال حالياً في جهاز الطرف الآخر)
+        $apiUrl = "https://tztfn-196-1-227-87.run.pinggy-free.link/tma/customer/name/{$customerNum}";
 
         try {
+            // 3. تنفيذ الطلب مع تخطي حظر الشهادات
             $response = Http::withToken($apiToken)
+                ->withoutVerifying()
                 ->acceptJson()
+                ->timeout(10) // وضع حد أقصى للانتظار 10 ثوانٍ حتى لا يعلق السيرفر
                 ->get($apiUrl);
 
             if ($response->successful()) {
                 return response()->json($response->json());
             }
-
             return response()->json([
                 'success' => false,
-                'message' => 'العميل غير موجود أو السيرفر لا يستجيب',
+                'message' => 'العميل غير موجود في قواعد بيانات البنك',
             ], $response->status());
 
         } catch (\Exception $e) {
+            Log::error('فشل اتصال الـ Proxy بنفق البنك: '.$e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'تعذر الاتصال بخادم البنك الخارجي',
+                'message' => 'تعذر الاتصال بخادم البنك الخارجي (يرجى التأكد من تشغيل نفق Pinggy)',
+                'debug_error' => $e->getMessage(), // سيظهر لك سبب الفشل الفعلي في المتصفح أثناء التطوير
             ], 500);
         }
     }

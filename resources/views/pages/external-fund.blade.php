@@ -268,7 +268,6 @@
                         "Accept": "application/json"
                     },
                     success: function(response) {
-                        // دعم فحص حالتي الإرجاع حسب بنية الـ JSON الراجع من البنك
                         if (response.success && response.name) {
                             $('#customer_name').val(response.name);
                             $('#to_account').html(
