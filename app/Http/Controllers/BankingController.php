@@ -33,7 +33,7 @@ class BankingController extends Controller
         $token = Session::get('token');
         $response = Http::withToken($token)
             ->post(
-                'https://sokoq-196-1-227-87.run.pinggy-free.link/tma/transfer',
+                'https://eyxmt-196-1-227-87.run.pinggy-free.link/tma/transfer',
                 [
                     'accountFrom' => $request->accountFrom,
                     'accountTo' => $request->accountTo,
@@ -81,7 +81,7 @@ class BankingController extends Controller
         $token = Session::get('token');
         $response = Http::withToken($token)
             ->acceptJson()
-            ->post('https://sokoq-196-1-227-87.run.pinggy-free.link/tma/transfer', [
+            ->post('https://eyxmt-196-1-227-87.run.pinggy-free.link/tma/transfer', [
                 'accountFrom' => $request->from_account,
                 'accountTo' => $request->bban,
                 'amount' => $request->amount,
@@ -119,7 +119,7 @@ class BankingController extends Controller
         $apiToken = session('token');
 
         // 2. رابط السيرفر (تأكد أن tztfn هو الرابط الشغال حالياً في جهاز الطرف الآخر)
-        $apiUrl = "https://sokoq-196-1-227-87.run.pinggy-free.link/tma/customer/name/{$customerNum}";
+        $apiUrl = "https://eyxmt-196-1-227-87.run.pinggy-free.link/tma/customer/name/{$customerNum}";
 
         try {
             // 3. تنفيذ الطلب مع تخطي حظر الشهادات
