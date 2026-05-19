@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Session;
-
+use Illuminate\Support\Facades\Log;
 class BankingController extends Controller
 {
     public function intFund()
@@ -111,8 +111,6 @@ class BankingController extends Controller
         return back()->with('error', $errorMessage)->withInput();
     }
 
-    use Illuminate\Support\Facades\Http;
-    use Illuminate\Support\Facades\Log;
 
     public function verifyCustomerProxy($customerNum)
     {
