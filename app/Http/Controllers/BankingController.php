@@ -75,7 +75,7 @@ class BankingController extends Controller
         $type = 'التحويل الى عميل داخل البنك';
         $request->validate([
             'from_account' => 'required',
-            'bban' => 'required', 
+            'bban' => 'required',
             'amount' => 'required|numeric|min:1',
         ]);
         $token = Session::get('token');
@@ -92,7 +92,7 @@ class BankingController extends Controller
         if ($response->successful()) {
             $result = $response->json();
             $transaction = [
-                'reference_no' => $result['traceId'] ?? '260516'.rand(100000, 999999).'895555', 
+                'reference_no' => $result['traceId'] ?? '260516'.rand(100000, 999999).'895555',
                 'date' => now()->format('d/m/Y h:i:s A'),
                 'type' => $type,
                 'from_account' => $request->from_account,
@@ -107,22 +107,39 @@ class BankingController extends Controller
         }
 
         $errorMessage = $response->json()['message'] ?? 'حدث خطأ في عملية التحويل، يرجى المحاولة لاحقاً';
+
         return back()->with('error', $errorMessage)->withInput();
     }
 
+    public function verifyCustomerProxy($customerNum)
+    {
+        // سحب التوكن من السيشن بأمان
+        $apiToken = session('token');
 
+        // رابط السيرفر المباشر للـ Pinggy
+        $apiUrl = 'https://tztfn-196-1-227-87.run.pinggy-free.link/tma/customer/name/{customerNum}';
 
+        try {
+            $response = Http::withToken($apiToken)
+                ->acceptJson()
+                ->get($apiUrl);
 
+            if ($response->successful()) {
+                return response()->json($response->json());
+            }
 
+            return response()->json([
+                'success' => false,
+                'message' => 'العميل غير موجود',
+            ], $response->status());
 
-
-
-
-
-
-
-
-
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'تعذر الاتصال بخادم البنك',
+            ], 500);
+        }
+    }
 
     public function verifyBban(Request $request)
     {

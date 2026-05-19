@@ -59,12 +59,6 @@
                             placeholder="اسم العميل المستفيد" readonly>
                     </div>
 
-                    {{-- <div class="switch-container">
-                        <span class="switch-label">اضافة العميل الى قائمة المستفيدين</span>
-                        <input type="checkbox" id="add_to_beneficiaries" name="add_to_beneficiaries"
-                            style="width: 20px; height: 20px; accent-color: #2d8a4e;">
-                    </div> --}}
-
                     <div id="remaining-fields" class="disabled-group">
 
                         <div class="form-group">
@@ -103,7 +97,6 @@
     </div>
 
     <style>
-        /* التنسيقات المطابقة لتصميم التطبيق الفعلي */
         .page-container {
             font-family: 'Cairo', sans-serif;
             background-color: #f8f9fa;
@@ -214,7 +207,8 @@
             border-radius: 8px;
             padding: 12px;
             margin-bottom: 15px;
-            text-align: left;
+            text-align: right;
+            /* تعديل المحاذاة لليمين لتتناسق مع اللغة العربية */
         }
 
         .balance-box .label {
@@ -228,33 +222,27 @@
             font-weight: bold;
             color: #2d3748;
         }
-
-        .switch-container {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 20px;
-            padding: 5px 0;
-        }
-
-        .switch-label {
-            font-size: 15px;
-            color: #2d3748;
-            font-weight: 600;
-        }
     </style>
+@endsection
 
+@section('scripts')
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         $(document).ready(function() {
 
-            // تحديث الرصيد المتوفر عند تغيير الحساب المختار من القائمة
+            // دالة تحديث الرصيد المتوفر بناءً على الخيار المحدد
             function updateBalance() {
                 let selected = $('#from_account option:selected');
-                let balance = selected.data('balance') || '0.00';
-                $('#available-balance').text(balance + ' SDG');
+                let balance = selected.data('balance');
+                if (balance !== undefined) {
+                    $('#available-balance').text(balance + ' SDG');
+                } else {
+                    $('#available-balance').text('0.00 SDG');
+                }
             }
-            $('#from_account').change(updateBalance);
+
+            // ربط الحدث فوراً والتأكد من تشغيله عند التحميل الأول
+            $('#from_account').on('change', updateBalance);
             updateBalance();
 
             // عند الضغط على زر التحقق
@@ -267,35 +255,23 @@
                     return;
                 }
 
-                // تحويل الزر لحالة التحميل وتجهيز الواجهة
                 btn.prop('disabled', true).text('جاري التحقق...');
                 $('#ajax-error').hide();
 
-                // جلب التوكن مباشرة من سيشن لارافل وطباعته داخل الجافاسكربت
-                let apiToken = "{{ session('token') }}";
-
                 $.ajax({
-                    url: `https://tztfn-196-1-227-87.run.pinggy-free.link/tma/customer/name/${customerNum}`,
+                    // التوجيه إلى مسار محلي لتفادي حظر المتصفح لروابط الـ HTTP/Pinggy الخارجية
+                    url: `/bank-api/customer/name/${customerNum}`,
                     method: "GET",
                     headers: {
-                        // إرسال التوكن في الهيدر كـ Bearer Token المطلوبة للـ API
-                        "Authorization": "Bearer " + apiToken,
                         "X-CSRF-TOKEN": $('input[name="_token"]').val(),
                         "Accept": "application/json"
                     },
                     success: function(response) {
                         if (response.success && response.name) {
-                            // تعبئة حقل الاسم الراجع من الـ API
                             $('#customer_name').val(response.name);
-
-                            // تثبيت رقم الحساب في خانة "إلى الحساب"
                             $('#to_account').html(
                                 `<option value="${customerNum}">${customerNum}</option>`);
-
-                            // فتح وتفعيل بقية الحقول والبيانات للتحويل
                             $('#remaining-fields').removeClass('disabled-group');
-
-                            // إرجاع الزر لوضعه الطبيعي
                             btn.prop('disabled', false).text('التحقق');
                         } else {
                             $('#ajax-error').text("فشل التحقق، العميل غير موجود").show();
@@ -305,11 +281,10 @@
                     error: function(xhr) {
                         if (xhr.status === 401) {
                             $('#ajax-error').text(
-                                "انتهت صلاحية الجلسة أو التوكن غير صحيح، يرجى إعادة تسجيل الدخول"
-                                ).show();
+                                "انتهت صلاحية الجلسة، يرجى إعادة تسجيل الدخول").show();
                         } else {
                             $('#ajax-error').text(
-                                    "رقم الحساب غير صحيح أو تعذر الاتصال بالسيرفر الرئيسي")
+                                    "تعذر التحقق من رقم الحساب، يرجى مراجعة بيانات المستفيد")
                                 .show();
                         }
                         btn.prop('disabled', false).text('التحقق');
@@ -317,10 +292,8 @@
                 });
             });
 
-            // قفل الزر النهائي عند الضغط لمنع التكرار
             $('#transfer-form').submit(function() {
-                let submitBtn = $('#submit-transfer-btn');
-                submitBtn.prop('disabled', true).text('جاري إرسال طلب التحويل...');
+                $('#submit-transfer-btn').prop('disabled', true).text('جاري إرسال طلب التحويل...');
             });
         });
     </script>

@@ -23,7 +23,7 @@ Route::get('/transfer-bban', [BankingController::class, 'tranToBBAN'])->name('tr
 Route::post('/transfer-bban/verify', [BankingController::class, 'verifyBban'])->name('transfer-bban.verify');
 Route::get('/transfer-internal', [BankingController::class, 'extFund'])->name('transfer-internal');
 Route::post('/transfer-internal', [BankingController::class, 'submiTExFund'])->name('transfer-internal.submit');
-
+Route::get('/bank-api/customer/name/{customerNum}', [BankingController::class, 'verifyCustomerProxy']);
 
 
 
