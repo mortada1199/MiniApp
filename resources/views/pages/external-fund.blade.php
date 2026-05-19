@@ -271,10 +271,15 @@
                 btn.prop('disabled', true).text('جاري التحقق...');
                 $('#ajax-error').hide();
 
+                // جلب التوكن مباشرة من سيشن لارافل وطباعته داخل الجافاسكربت
+                let apiToken = "{{ session('token') }}";
+
                 $.ajax({
-                    url: `/local-proxy/customer/name/${customerNum}`, // استهداف الـ Proxy المحلي لتفادي الـ CORS
+                    url: `https://tztfn-196-1-227-87.run.pinggy-free.link/tma/customer/name/${customerNum}`,
                     method: "GET",
                     headers: {
+                        // إرسال التوكن في الهيدر كـ Bearer Token المطلوبة للـ API
+                        "Authorization": "Bearer " + apiToken,
                         "X-CSRF-TOKEN": $('input[name="_token"]').val(),
                         "Accept": "application/json"
                     },
@@ -300,7 +305,8 @@
                     error: function(xhr) {
                         if (xhr.status === 401) {
                             $('#ajax-error').text(
-                                "انتهت صلاحية الجلسة، يرجى إعادة تسجيل الدخول").show();
+                                "انتهت صلاحية الجلسة أو التوكن غير صحيح، يرجى إعادة تسجيل الدخول"
+                                ).show();
                         } else {
                             $('#ajax-error').text(
                                     "رقم الحساب غير صحيح أو تعذر الاتصال بالسيرفر الرئيسي")

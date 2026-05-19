@@ -33,7 +33,7 @@ class BankingController extends Controller
         $token = Session::get('token');
         $response = Http::withToken($token)
             ->post(
-                'https://igbbd-196-1-227-87.run.pinggy-free.link/tma/transfer',
+                'https://tztfn-196-1-227-87.run.pinggy-free.link/tma/transfer',
                 [
                     'accountFrom' => $request->accountFrom,
                     'accountTo' => $request->accountTo,
@@ -78,10 +78,10 @@ class BankingController extends Controller
             'bban' => 'required', 
             'amount' => 'required|numeric|min:1',
         ]);
-        $token = Session::get('token') ?? Session::get('api_token');
+        $token = Session::get('token');
         $response = Http::withToken($token)
             ->acceptJson()
-            ->post('https://igbbd-196-1-227-87.run.pinggy-free.link/tma/transfer', [
+            ->post('https://tztfn-196-1-227-87.run.pinggy-free.link/tma/transfer', [
                 'accountFrom' => $request->from_account,
                 'accountTo' => $request->bban,
                 'amount' => $request->amount,
@@ -123,7 +123,7 @@ class BankingController extends Controller
 
 
 
-    
+
     public function verifyBban(Request $request)
     {
         return response()->json([
