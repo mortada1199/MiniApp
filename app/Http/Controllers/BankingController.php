@@ -117,7 +117,7 @@ class BankingController extends Controller
         $apiToken = session('token');
 
         // رابط السيرفر المباشر للـ Pinggy
-        $apiUrl = 'https://tztfn-196-1-227-87.run.pinggy-free.link/customer/name/{customerNum}';
+        $apiUrl = 'https://tztfn-196-1-227-87.run.pinggy-free.link/name/{customerNum}';
 
         try {
             $response = Http::withToken($apiToken)
