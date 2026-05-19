@@ -116,8 +116,8 @@ class BankingController extends Controller
         // سحب التوكن من السيشن بأمان
         $apiToken = session('token');
 
-        // رابط السيرفر المباشر للـ Pinggy
-        $apiUrl = 'https://tztfn-196-1-227-87.run.pinggy-free.link/name/{customerNum}';
+        // إصلاح الرابط: يجب استخدام علامات الاقتباس المزدوجة " " ليتم استبدال المتغير ديناميكياً
+        $apiUrl = "https://tztfn-196-1-227-87.run.pinggy-free.link/customer/name/{$customerNum}";
 
         try {
             $response = Http::withToken($apiToken)
@@ -130,13 +130,13 @@ class BankingController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'العميل غير موجود',
+                'message' => 'العميل غير موجود أو السيرفر لا يستجيب',
             ], $response->status());
 
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'تعذر الاتصال بخادم البنك',
+                'message' => 'تعذر الاتصال بخادم البنك الخارجي',
             ], 500);
         }
     }

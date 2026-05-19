@@ -229,22 +229,22 @@
     <script>
         $(document).ready(function() {
 
-            // دالة تحديث الرصيد المتوفر بناءً على الحساب المختار من المتغير الممرر
+            // دالة تحديث الرصيد المتوفر
             function updateBalance() {
                 let selectedOption = $('#from_account option:selected');
                 let balance = selectedOption.data('balance');
-                
+
                 if (balance !== undefined && balance !== null) {
                     $('#available-balance').text(balance + ' SDG');
                 } else {
                     $('#available-balance').text('0.00 SDG');
                 }
             }
-            
-            // تشغيل التحديث فوراً لعرض رصيد الحساب الافتراضي الأول عند فتح الصفحة
+
+            // تشغيل فوري مع التحميل
             updateBalance();
 
-            // الاستماع لتغيير الحساب المختار من القائمة وتحديث الرصيد أوتوماتيكياً
+            // الاستماع لتغيير القائمة
             $('#from_account').on('change', updateBalance);
 
             // عند الضغط على زر التحقق
@@ -261,17 +261,18 @@
                 $('#ajax-error').hide();
 
                 $.ajax({
-                    // استخدام الـ Proxy المحلي لتفادي قيود المتصفح والـ CORS
-                    url: `/bank-api/customer/name/${customerNum}`, 
+                    url: `/bank-api/customer/name/${customerNum}`,
                     method: "GET",
                     headers: {
                         "X-CSRF-TOKEN": $('input[name="_token"]').val(),
                         "Accept": "application/json"
                     },
                     success: function(response) {
+                        // دعم فحص حالتي الإرجاع حسب بنية الـ JSON الراجع من البنك
                         if (response.success && response.name) {
                             $('#customer_name').val(response.name);
-                            $('#to_account').html(`<option value="${customerNum}">${customerNum}</option>`);
+                            $('#to_account').html(
+                                `<option value="${customerNum}">${customerNum}</option>`);
                             $('#remaining-fields').removeClass('disabled-group');
                             btn.prop('disabled', false).text('التحقق');
                         } else {
@@ -281,16 +282,18 @@
                     },
                     error: function(xhr) {
                         if (xhr.status === 401) {
-                            $('#ajax-error').text("انتهت صلاحية الجلسة، يرجى إعادة تسجيل الدخول").show();
+                            $('#ajax-error').text(
+                                "انتهت صلاحية الجلسة، يرجى إعادة تسجيل الدخول").show();
                         } else {
-                            $('#ajax-error').text("تعذر التحقق من رقم الحساب، يرجى مراجعة بيانات المستفيد").show();
+                            $('#ajax-error').text(
+                                "تعذر التحقق من رقم الحساب، يرجى مراجعة سيرفر النفق (Pinggy)"
+                                ).show();
                         }
                         btn.prop('disabled', false).text('التحقق');
                     }
                 });
             });
 
-            // قفل زر الإرسال عند الضغط لمنع تكرار العملية
             $('#transfer-form').submit(function() {
                 $('#submit-transfer-btn').prop('disabled', true).text('جاري إرسال طلب التحويل...');
             });
