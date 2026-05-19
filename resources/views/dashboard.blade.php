@@ -168,10 +168,10 @@
 
             </a>
 
-            <a href="#" class="service-card">
+            <a href="{{ route('transfer-internal') }}" class="service-card">
 
-                <div class="service-icon icon-visa">
-                    <i class="fas fa-credit-card"></i>
+                <div class="service-icon icon-transfer">
+                    <i class="fas fa-exchange-alt"></i>
                 </div>
 
                 <span class="label">
