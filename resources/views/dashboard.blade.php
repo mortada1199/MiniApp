@@ -168,6 +168,19 @@
 
             </a>
 
+            <a href="#" class="service-card">
+
+                <div class="service-icon icon-visa">
+                    <i class="fas fa-credit-card"></i>
+                </div>
+
+                <span class="label">
+                  تحويل لعميل داخل البنك
+                </span>
+
+            </a>
+
+
             <a href="{{ route('transfer-bban') }}" class="service-card">
 
                 <div class="service-icon icon-visa">

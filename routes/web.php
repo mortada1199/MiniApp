@@ -21,10 +21,16 @@ Route::get('/internal-fund', [BankingController::class, 'intFund'])->name('inter
 Route::post('/internal-fund', [BankingController::class, 'submitIntFund'])->name('internal-fund.submit');
 Route::get('/transfer-bban', [BankingController::class, 'tranToBBAN'])->name('transfer-bban');
 Route::post('/transfer-bban/verify', [BankingController::class, 'verifyBban'])->name('transfer-bban.verify');
+Route::get('/transfer-internal', [BankingController::class, 'extFund'])->name('transfer-internal');
+Route::post('/transfer-internal', [BankingController::class, 'submiTExFund'])->name('transfer-internal.submit');
 
 
 
 
+
+
+// Route::get('/tma/customer/name/{customerNum}', [TransferController::class, 'verifyCustomer'])->name('transfer-bban.verify');
+// Route::post('/transfer-internal/submit', [TransferController::class, 'submitTransfer'])->name('transfer-internal.submit');
 // Route::get('/generate-token', [BankingController::class, 'generateToken'])->name('generate-token');
 // Route::get('/change-pin', [BankingController::class, 'changePin'])->name('change-pin');
 // Route::post('/change-pin', [BankingController::class, 'submitChangePin'])->name('change-pin.submit');

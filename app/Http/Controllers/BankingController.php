@@ -13,16 +13,18 @@ class BankingController extends Controller
         $allAccounts = session('accounts', []);
         $filteredAccounts = array_filter($allAccounts, function ($account) {
             $accountNo = trim((string) ($account['accountNo'] ?? ''));
+
             return strlen($accountNo) >= 14 && $accountNo[13] === '1';
         });
         $accounts = collect($filteredAccounts)->values()->all();
+
         return view('pages.internal-fund', compact('accounts'));
     }
 
     public function submitIntFund(Request $request)
     {
 
-          $type = "تحويل داخلي ";
+        $type = 'تحويل داخلي ';
         $request->validate([
             'accountFrom' => 'required',
             'accountTo' => 'required',
@@ -41,8 +43,7 @@ class BankingController extends Controller
                 ]
             );
         if ($response->successful()) {
-         
-            return view('pages.receipt', compact('request','type'));
+            return view('pages.receipt', compact('request', 'type'));
         }
 
         return back()->with(
@@ -56,12 +57,75 @@ class BankingController extends Controller
         return view('pages.accounts');
     }
 
+    public function extFund()
+    {
+        $allAccounts = session('accounts', []);
+        $filteredAccounts = array_filter($allAccounts, function ($account) {
+            $accountNo = trim((string) ($account['accountNo'] ?? ''));
+
+            return strlen($accountNo) >= 14 && $accountNo[13] === '1';
+        });
+        $accounts = collect($filteredAccounts)->values()->all();
+
+        return view('pages.external-fund', compact('accounts'));
+    }
+
+    public function submiTExFund(Request $request)
+    {
+        $type = 'التحويل الى عميل داخل البنك';
+        $request->validate([
+            'from_account' => 'required',
+            'bban' => 'required', 
+            'amount' => 'required|numeric|min:1',
+        ]);
+        $token = Session::get('token') ?? Session::get('api_token');
+        $response = Http::withToken($token)
+            ->acceptJson()
+            ->post('https://igbbd-196-1-227-87.run.pinggy-free.link/tma/transfer', [
+                'accountFrom' => $request->from_account,
+                'accountTo' => $request->bban,
+                'amount' => $request->amount,
+                'remarkCredit' => 'Transfer to customer',
+                'remarkDebit' => 'Transfer to customer',
+            ]);
+
+        if ($response->successful()) {
+            $result = $response->json();
+            $transaction = [
+                'reference_no' => $result['traceId'] ?? '260516'.rand(100000, 999999).'895555', 
+                'date' => now()->format('d/m/Y h:i:s A'),
+                'type' => $type,
+                'from_account' => $request->from_account,
+                'to_account' => $request->bban,
+                'client_name' => $request->customer_name,
+                'phone' => $request->phone ?? '-----',
+                'notes' => $request->note ?? '-----',
+                'amount' => $request->amount,
+            ];
+
+            return view('pages.receipt', compact('transaction'));
+        }
+
+        $errorMessage = $response->json()['message'] ?? 'حدث خطأ في عملية التحويل، يرجى المحاولة لاحقاً';
+        return back()->with('error', $errorMessage)->withInput();
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
     public function verifyBban(Request $request)
     {
-        // ابحث عن الحساب في قاعدة البيانات
-        //  $account = Account::where('bban_number', $request->bban)->first();
-
-        // if ($account) {
         return response()->json([
             'success' => true,
             'data' => [
@@ -70,9 +134,7 @@ class BankingController extends Controller
                 'limits' => '10.00 SDG - 500,000.00 SDG', // أو حسب برمجتك
             ],
         ]);
-        // }
 
-        // return response()->json(['success' => false], 404);
     }
 
     public function tranToBBAN()
@@ -119,11 +181,6 @@ class BankingController extends Controller
     //         'amount' => 'required|numeric|min:1',
     //     ]);
     //     return back()->with('success', 'تمت عملية التحويل بنجاح');
-    // }
-
-    // public function extFund()
-    // {
-    //     return view('pages.external-fund');
     // }
 
     // public function submitExtFund(Request $request)
