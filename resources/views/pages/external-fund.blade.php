@@ -48,7 +48,7 @@
                     <div class="form-group">
                         <label for="bban">رقم الحساب</label>
                         <input type="text" id="bban" name="bban" class="form-control"
-                            placeholder="أدخل رقم الحساب" required>
+                            placeholder="أدخل رقم الحساب أو الرقم التعريفي" required>
                     </div>
 
                     <button type="button" id="verify-btn" class="btn btn-dark-custom">التحقق</button>
@@ -62,8 +62,9 @@
                     <div id="remaining-fields" class="disabled-group">
 
                         <div class="form-group">
-                            <label for="to_account">إلى الحساب</label>
-                            <select id="to_account" name="to_account" class="form-control">
+                            <label for="to_account">إلى حساب المستفيد</label>
+                            <select id="to_account" name="to_account" class="form-control" required>
+                                <option value="">-- اختر حساب المستفيد --</option>
                             </select>
                         </div>
 
@@ -82,7 +83,7 @@
                         <div class="form-group">
                             <label for="amount">المبلغ</label>
                             <input type="number" id="amount" name="amount" class="form-control"
-                                placeholder="أدخل المبلغ" min="1">
+                                placeholder="أدخل المبلغ" min="1" required>
                         </div>
 
                         <button type="submit" id="submit-transfer-btn" class="btn btn-dark-custom"
@@ -229,7 +230,7 @@
     <script>
         $(document).ready(function() {
 
-            // دالة تحديث الرصيد المتوفر
+            // دالة تحديث الرصيد المتوفر للمرسل
             function updateBalance() {
                 let selectedOption = $('#from_account option:selected');
                 let balance = selectedOption.data('balance');
@@ -241,10 +242,7 @@
                 }
             }
 
-            // تشغيل فوري مع التحميل
             updateBalance();
-
-            // الاستماع لتغيير القائمة
             $('#from_account').on('change', updateBalance);
 
             // عند الضغط على زر التحقق
@@ -259,6 +257,7 @@
 
                 btn.prop('disabled', true).text('جاري التحقق...');
                 $('#ajax-error').hide();
+                $('#to_account').html('<option value="">-- اختر حساب المستفيد --</option>');
 
                 $.ajax({
                     url: `/bank-api/customer/name/${customerNum}`,
@@ -270,9 +269,27 @@
                     success: function(response) {
                         if (response.success && response.name) {
                             $('#customer_name').val(response.name);
-                            $('#to_account').html(
-                                `<option value="${customerNum}">${customerNum}</option>`);
-                            $('#remaining-fields').removeClass('disabled-group');
+
+                            if (response.customerInfo && response.customerInfo.accounts &&
+                                response.customerInfo.accounts.length > 0) {
+                                let accountsList = response.customerInfo.accounts;
+                                let optionsHtml = '';
+
+                                // التعديل هنا: تم مسح جزء طباعة الرصيد من النص تماماً
+                                $.each(accountsList, function(index, acc) {
+                                    optionsHtml += `<option value="${acc.accountNo}">
+                                        ${acc.ledModelDesc} - ${acc.accountNo}
+                                    </option>`;
+                                });
+
+                                $('#to_account').append(optionsHtml);
+                                $('#remaining-fields').removeClass('disabled-group');
+                            } else {
+                                $('#ajax-error').text(
+                                        "تم التحقق من الاسم، ولكن تعذر جلب حسابات المستفيد")
+                                    .show();
+                            }
+
                             btn.prop('disabled', false).text('التحقق');
                         } else {
                             $('#ajax-error').text("فشل التحقق، العميل غير موجود").show();
@@ -284,9 +301,12 @@
                             $('#ajax-error').text(
                                 "انتهت صلاحية الجلسة، يرجى إعادة تسجيل الدخول").show();
                         } else {
-                            $('#ajax-error').text(
-                                "تعذر التحقق من رقم الحساب، يرجى مراجعة سيرفر النفق (Pinggy)"
-                                ).show();
+                            let errorMsg =
+                                "تعذر التحقق من رقم الحساب، يرجى مراجعة سيرفر النفق (Pinggy)";
+                            if (xhr.responseJSON && xhr.responseJSON.debug_error) {
+                                errorMsg += " (" + xhr.responseJSON.debug_error + ")";
+                            }
+                            $('#ajax-error').text(errorMsg).show();
                         }
                         btn.prop('disabled', false).text('التحقق');
                     }
