@@ -33,7 +33,7 @@
                         <select id="from_account" name="from_account" class="form-control">
                             @foreach ($accounts as $account)
                                 <option value="{{ $account['accountNo'] }}"
-                                    data-balance="{{ number_format($account['balance'] ?? 0, 2) }}">
+                                    data-balance="{{ number_format($account['availBal'] ?? 0, 2) }}">
                                     {{ $account['ledModelDesc'] }} - {{ $account['accountNo'] }}
                                 </option>
                             @endforeach
@@ -262,7 +262,7 @@
 
                 $.ajax({
                     // استخدام الـ Proxy المحلي لتفادي قيود المتصفح والـ CORS
-                    url: `/bank-api/name/${customerNum}`, 
+                    url: `/bank-api/customer/name/${customerNum}`, 
                     method: "GET",
                     headers: {
                         "X-CSRF-TOKEN": $('input[name="_token"]').val(),
