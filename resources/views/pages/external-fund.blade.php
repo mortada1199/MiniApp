@@ -258,7 +258,7 @@
                 btn.prop('disabled', true).text('جاري التحقق...');
                 $('#ajax-error').hide();
                 
-                // إعادة تهيئة القائمة المنسدلة للمستفيد عند كل عملية تحقق جديدة
+                // تصفير القائمة قبل البدء بالطلب
                 $('#to_account').html('<option value="">-- اختر حساب المستفيد --</option>');
 
                 $.ajax({
@@ -272,18 +272,18 @@
                         if (response.success && response.name) {
                             $('#customer_name').val(response.name);
 
-                            // التعديل هنا: فحص وقراءة مصفوفة accounts مباشرة من الجذر (Root)
                             if (response.accounts && response.accounts.length > 0) {
-                                let accountsList = response.accounts;
-                                let optionsHtml = '';
+                                let optionsHtml = '<option value="">-- اختر حساب المستفيد --</option>';
 
-                                $.each(accountsList, function(index, acc) {
-                                    optionsHtml += `<option value="${acc.accountNo}">
-                                        ${acc.ledModelDesc} - ${acc.accountNo}
-                                    </option>`;
+                                // بناء خيارات الحسابات
+                                $.each(response.accounts, function(index, acc) {
+                                    optionsHtml += `<option value="${acc.accountNo}">${acc.ledModelDesc} - ${acc.accountNo}</option>`;
                                 });
 
-                                $('#to_account').append(optionsHtml);
+                                // استبدال محتوى القائمة بالكامل لضمان التحديث الفوري بالمتصفح
+                                $('#to_account').html(optionsHtml);
+                                
+                                // تفعيل الحقول المخفية
                                 $('#remaining-fields').removeClass('disabled-group');
                             } else {
                                 $('#ajax-error').text("تم التحقق من الاسم، ولكن تعذر جلب حسابات المستفيد").show();
