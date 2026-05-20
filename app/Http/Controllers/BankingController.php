@@ -1,234 +1,123 @@
-<?php
+@extends('layouts.app')
+@section('title', 'التحويل الي عميل داخل البنك')
 
-namespace App\Http\Controllers;
+@section('content')
+    <div class="page-container">
+        <div class="page-header">
+            <a href="{{ route('dashboard') }}" class="back-btn"><i class="fas fa-arrow-right"></i></a>
+            <h2>التحويل الي عميل داخل البنك</h2>
+            <div style="width:36px"></div>
+        </div>
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Facades\Log;
-class BankingController extends Controller
-{
-    public function intFund()
-    {
-        $allAccounts = session('accounts', []);
-        $filteredAccounts = array_filter($allAccounts, function ($account) {
-            $accountNo = trim((string) ($account['accountNo'] ?? ''));
+        <div class="page-content fade-in">
+            @if (session('success'))
+                <div class="alert alert-success"><i class="fas fa-check-circle"></i> {{ session('success') }}</div>
+            @endif
 
-            return strlen($accountNo) >= 14 && $accountNo[13] === '1';
+            <div id="ajax-error" class="alert alert-error" style="display:none; margin: 15px;"></div>
+
+            <div class="info-card">
+                <form method="POST" action="{{ route('transfer-internal.submit') }}" id="transfer-form">
+                    @csrf
+
+                    <div class="form-group">
+                        <label for="from_account">من حساب</label>
+                        <select id="from_account" name="from_account" class="form-control">
+                            @foreach ($accounts as $account)
+                                <option value="{{ $account['accountNo'] }}" data-balance="{{ number_format($account['availBal'] ?? 0, 2) }}">
+                                    {{ $account['ledModelDesc'] }} - {{ $account['accountNo'] }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="balance-box">
+                        <span class="label">الرصيد المتوفر</span>
+                        <span class="amount" id="available-balance">0.00 SDG</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="bban">رقم الحساب</label>
+                        <input type="text" id="bban" name="bban" class="form-control" placeholder="أدخل رقم الحساب" required>
+                    </div>
+
+                    <button type="button" id="verify-btn" class="btn btn-dark-custom">التحقق</button>
+
+                    <div class="form-group" style="margin-top: 15px;">
+                        <label for="customer_name">اسم العميل</label>
+                        <input type="text" id="customer_name" name="customer_name" class="form-control" placeholder="اسم العميل المستفيد" readonly>
+                    </div>
+
+                    <div id="remaining-fields">
+                        <div class="form-group">
+                            <label for="to_account">إلى حساب المستفيد</label>
+                            <select id="to_account" name="to_account" class="form-control" disabled required>
+                                <option value="">-- اختر حساب المستفيد --</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="amount">المبلغ</label>
+                            <input type="number" id="amount" name="amount" class="form-control" placeholder="أدخل المبلغ" min="1" required>
+                        </div>
+                        <button type="submit" id="submit-transfer-btn" class="btn btn-dark-custom">تحويل</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+@endsection
+
+@section('scripts')
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+        function updateBalance() {
+            let selected = $('#from_account option:selected');
+            $('#available-balance').text((selected.data('balance') || '0.00') + ' SDG');
+        }
+        $('#from_account').on('change', updateBalance);
+        updateBalance();
+
+        $('#verify-btn').click(function() {
+            let bban = $('#bban').val().trim();
+            let btn = $(this);
+            
+            if (!bban) { alert("الرجاء إدخال رقم الحساب"); return; }
+
+            btn.prop('disabled', true).text('جاري التحقق...');
+            $('#ajax-error').hide();
+            $('#to_account').html('<option value="">-- اختر حساب المستفيد --</option>').prop('disabled', true);
+
+            $.ajax({
+                url: `/bank-api/customer/name/${bban}`,
+                method: "GET",
+                success: function(response) {
+                    // في حال كان هناك مشكلة، هذا التنبيه سيظهر لك البيانات على شاشة الجوال
+                    if (response.success && response.name) {
+                        $('#customer_name').val(response.name);
+                        
+                        if (response.accounts && response.accounts.length > 0) {
+                            $.each(response.accounts, function(i, acc) {
+                                $('#to_account').append(`<option value="${acc.accountNo}">${acc.ledModelDesc} - ${acc.accountNo}</option>`);
+                            });
+                            $('#to_account').prop('disabled', false);
+                        } else {
+                            alert("البيانات المستلمة: " + JSON.stringify(response));
+                            $('#ajax-error').text("تم العثور على العميل ولكن مصفوفة الحسابات فارغة.").show();
+                        }
+                    } else {
+                        alert("فشل التحقق، الرد هو: " + JSON.stringify(response));
+                        $('#ajax-error').text("فشل التحقق: العميل غير موجود.").show();
+                    }
+                    btn.prop('disabled', false).text('التحقق');
+                },
+                error: function(xhr) {
+                    alert("خطأ في الاتصال: " + xhr.status);
+                    $('#ajax-error').text("خطأ في الاتصال بالسيرفر.").show();
+                    btn.prop('disabled', false).text('التحقق');
+                }
+            });
         });
-        $accounts = collect($filteredAccounts)->values()->all();
-
-        return view('pages.internal-fund', compact('accounts'));
-    }
-
-    public function submitIntFund(Request $request)
-    {
-
-        $type = 'تحويل داخلي ';
-        $request->validate([
-            'accountFrom' => 'required',
-            'accountTo' => 'required',
-            'amount' => 'required|numeric|min:1',
-        ]);
-        $token = Session::get('token');
-        $response = Http::withToken($token)
-            ->post(
-                'https://hbcod-196-1-227-87.run.pinggy-free.link/tma/transfer',
-                [
-                    'accountFrom' => $request->accountFrom,
-                    'accountTo' => $request->accountTo,
-                    'amount' => $request->amount,
-                    'remarkCredit' => 'Salary May',
-                    'remarkDebit' => 'Transfer to checking',
-                ]
-            );
-        if ($response->successful()) {
-            return view('pages.receipt', compact('request', 'type'));
-        }
-
-        return back()->with(
-            'error',
-            'حدث خطأ في عملية التحويل'
-        );
-    }
-
-    public function accList()
-    {
-        return view('pages.accounts');
-    }
-
-    public function extFund()
-    {
-        $allAccounts = session('accounts', []);
-        $filteredAccounts = array_filter($allAccounts, function ($account) {
-            $accountNo = trim((string) ($account['accountNo'] ?? ''));
-
-            return strlen($accountNo) >= 14 && $accountNo[13] === '1';
-        });
-        $accounts = collect($filteredAccounts)->values()->all();
-
-        return view('pages.external-fund', compact('accounts'));
-    }
-
-    public function submiTExFund(Request $request)
-    {
-        
-        $request->validate([
-            'from_account' => 'required',
-            'bban' => 'required',
-            'amount' => 'required|numeric|min:1',
-        ]);
-        $token = Session::get('token');
-        $response = Http::withToken($token)
-            ->acceptJson()
-            ->post('https://hbcod-196-1-227-87.run.pinggy-free.link/tma/transfer', [
-                'accountFrom' => $request->from_account,
-                'accountTo' => $request->bban,
-                'amount' => $request->amount,
-                'remarkCredit' => 'Transfer to customer',
-                'remarkDebit' => 'Transfer to customer',
-            ]);
-
-        if ($response->successful()) {
-            $type = 'التحويل الى عميل داخل البنك';
-            $result = $response->json();
-            $transaction = [
-                'reference_no' => $result['traceId'] ?? '260516'.rand(100000, 999999).'895555',
-                'date' => now()->format('d/m/Y h:i:s A'),
-                'type' => $type,
-                'from_account' => $request->from_account,
-                'to_account' => $request->bban,
-                'client_name' => $request->customer_name,
-                'phone' => $request->phone ?? '-----',
-                'notes' => $request->note ?? '-----',
-                'amount' => $request->amount,
-            ];
-
-            return view('pages.exreceipt', compact('transaction'));
-        }
-
-        $errorMessage = $response->json()['message'] ?? 'حدث خطأ في عملية التحويل، يرجى المحاولة لاحقاً';
-
-        return back()->with('error', $errorMessage)->withInput();
-    }
-
-
-    public function verifyCustomerProxy($customerNum)
-    {
-        // 1. سحب التوكن من السيشن بأمان
-        $apiToken = session('token');
-
-        // 2. رابط السيرفر (تأكد أن tztfn هو الرابط الشغال حالياً في جهاز الطرف الآخر)
-        $apiUrl = "https://hbcod-196-1-227-87.run.pinggy-free.link/tma/customer/name/{$customerNum}";
-
-        try {
-            // 3. تنفيذ الطلب مع تخطي حظر الشهادات
-            $response = Http::withToken($apiToken)
-                ->withoutVerifying()
-                ->acceptJson()
-                ->timeout(10) // وضع حد أقصى للانتظار 10 ثوانٍ حتى لا يعلق السيرفر
-                ->get($apiUrl);
-
-            if ($response->successful()) {
-                return response()->json($response->json());
-            }
-            return response()->json([
-                'success' => false,
-                'message' => 'العميل غير موجود في قواعد بيانات البنك',
-            ], $response->status());
-
-        } catch (\Exception $e) {
-            Log::error('فشل اتصال الـ Proxy بنفق البنك: '.$e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'تعذر الاتصال بخادم البنك الخارجي (يرجى التأكد من تشغيل نفق Pinggy)',
-                'debug_error' => $e->getMessage(), // سيظهر لك سبب الفشل الفعلي في المتصفح أثناء التطوير
-            ], 500);
-        }
-    }
-
-    public function verifyBban(Request $request)
-    {
-        return response()->json([
-            'success' => true,
-            'data' => [
-                'name' => 'murtada',
-                'bank' => 'ONB',
-                'limits' => '10.00 SDG - 500,000.00 SDG', // أو حسب برمجتك
-            ],
-        ]);
-
-    }
-
-    public function tranToBBAN()
-    {
-        return view('pages.transfer-bban');
-    }
-
-    // public function changePin()
-    // {
-    //     return view('pages.change-pin');
-    // }
-
-    // public function submitChangePin(Request $request)
-    // {
-    //     $request->validate([
-    //         'current_pin' => 'required|digits:4',
-    //         'new_pin' => 'required|digits:4',
-    //         'confirm_pin' => 'required|same:new_pin',
-    //     ]);
-    //     return back()->with('success', 'تم تغيير الرقم السري بنجاح');
-    // }
-
-    // public function accTrans()
-    // {
-    //     $transactions = [
-    //         ['date' => '2026-05-10', 'description' => 'تحويل صادر', 'amount' => '-5,000', 'balance' => '45,000'],
-    //         ['date' => '2026-05-09', 'description' => 'إيداع نقدي', 'amount' => '+10,000', 'balance' => '50,000'],
-    //         ['date' => '2026-05-08', 'description' => 'دفع فاتورة كهرباء', 'amount' => '-1,200', 'balance' => '40,000'],
-    //         ['date' => '2026-05-07', 'description' => 'تحويل وارد', 'amount' => '+15,000', 'balance' => '41,200'],
-    //         ['date' => '2026-05-06', 'description' => 'سحب ATM', 'amount' => '-3,000', 'balance' => '26,200'],
-    //     ];
-    //     return view('pages.transactions', compact('transactions'));
-    // }
-
-    // public function tranToBBAN()
-    // {
-    //     return view('pages.transfer-bban');
-    // }
-
-    // public function submitTransferBBAN(Request $request)
-    // {
-    //     $request->validate([
-    //         'bban' => 'required',
-    //         'amount' => 'required|numeric|min:1',
-    //     ]);
-    //     return back()->with('success', 'تمت عملية التحويل بنجاح');
-    // }
-
-    // public function submitExtFund(Request $request)
-    // {
-    //     $request->validate([
-    //         'bank' => 'required',
-    //         'account' => 'required',
-    //         'amount' => 'required|numeric|min:1',
-    //     ]);
-    //     return back()->with('success', 'تم التحويل الخارجي بنجاح');
-    // }
-
-    public function payment()
-    {
-        return view('pages.payment');
-    }
-
-    public function submitPayment(Request $request)
-    {
-        $request->validate([
-            'service' => 'required',
-            'reference' => 'required',
-            'amount' => 'required|numeric|min:1',
-        ]);
-
-        return back()->with('success', 'تم دفع الفاتورة بنجاح');
-    }
-}
+    });
+</script>
+@endsection
