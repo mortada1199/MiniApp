@@ -257,6 +257,8 @@
 
                 btn.prop('disabled', true).text('جاري التحقق...');
                 $('#ajax-error').hide();
+                
+                // إعادة تهيئة القائمة المنسدلة للمستفيد عند كل عملية تحقق جديدة
                 $('#to_account').html('<option value="">-- اختر حساب المستفيد --</option>');
 
                 $.ajax({
@@ -270,12 +272,11 @@
                         if (response.success && response.name) {
                             $('#customer_name').val(response.name);
 
-                            if (response.customerInfo && response.customerInfo.accounts &&
-                                response.customerInfo.accounts.length > 0) {
-                                let accountsList = response.customerInfo.accounts;
+                            // التعديل هنا: فحص وقراءة مصفوفة accounts مباشرة من الجذر (Root)
+                            if (response.accounts && response.accounts.length > 0) {
+                                let accountsList = response.accounts;
                                 let optionsHtml = '';
 
-                                // التعديل هنا: تم مسح جزء طباعة الرصيد من النص تماماً
                                 $.each(accountsList, function(index, acc) {
                                     optionsHtml += `<option value="${acc.accountNo}">
                                         ${acc.ledModelDesc} - ${acc.accountNo}
@@ -285,9 +286,7 @@
                                 $('#to_account').append(optionsHtml);
                                 $('#remaining-fields').removeClass('disabled-group');
                             } else {
-                                $('#ajax-error').text(
-                                        "تم التحقق من الاسم، ولكن تعذر جلب حسابات المستفيد")
-                                    .show();
+                                $('#ajax-error').text("تم التحقق من الاسم، ولكن تعذر جلب حسابات المستفيد").show();
                             }
 
                             btn.prop('disabled', false).text('التحقق');
@@ -298,11 +297,9 @@
                     },
                     error: function(xhr) {
                         if (xhr.status === 401) {
-                            $('#ajax-error').text(
-                                "انتهت صلاحية الجلسة، يرجى إعادة تسجيل الدخول").show();
+                            $('#ajax-error').text("انتهت صلاحية الجلسة، يرجى إعادة تسجيل الدخول").show();
                         } else {
-                            let errorMsg =
-                                "تعذر التحقق من رقم الحساب، يرجى مراجعة سيرفر النفق (Pinggy)";
+                            let errorMsg = "تعذر التحقق من رقم الحساب، يرجى مراجعة سيرفر النفق (Pinggy)";
                             if (xhr.responseJSON && xhr.responseJSON.debug_error) {
                                 errorMsg += " (" + xhr.responseJSON.debug_error + ")";
                             }
