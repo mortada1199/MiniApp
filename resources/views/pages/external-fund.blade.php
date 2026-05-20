@@ -4,444 +4,544 @@
 
 @section('content')
 
-    <div class="page-container">
+<div class="page-container">
 
-        <div class="page-header">
-            <a href="{{ route('dashboard') }}" class="back-btn">
-                <i class="fas fa-arrow-right"></i>
-            </a>
+    <div class="page-header">
 
-            <h2>التحويل الي عميل داخل البنك</h2>
+        <a href="{{ route('dashboard') }}" class="back-btn">
+            <i class="fas fa-arrow-right"></i>
+        </a>
 
-            <div style="width:36px"></div>
-        </div>
+        <h2>التحويل الي عميل داخل البنك</h2>
 
-        <div class="page-content fade-in">
+        <div style="width:36px"></div>
 
-            @if (session('success'))
-                <div class="alert alert-success">
-                    <i class="fas fa-check-circle"></i>
-                    {{ session('success') }}
-                </div>
-            @endif
+    </div>
 
-            @if ($errors->any())
-                <div class="alert alert-error" style="margin: 15px;">
-                    @foreach ($errors->all() as $error)
-                        <div>{{ $error }}</div>
-                    @endforeach
-                </div>
-            @endif
+    <div class="page-content fade-in">
 
-            <div id="ajax-error" class="alert alert-error" style="display:none; margin:15px;"></div>
+        @if (session('success'))
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle"></i>
+                {{ session('success') }}
+            </div>
+        @endif
 
-            <div class="info-card">
+        @if ($errors->any())
+            <div class="alert alert-error" style="margin:15px;">
 
-                <form method="POST" action="{{ route('transfer-internal.submit') }}" id="transfer-form">
-
-                    @csrf
-
-                    {{-- من حساب --}}
-                    <div class="form-group">
-                        <label for="from_account">من حساب</label>
-
-                        <select id="from_account" name="from_account" class="form-control">
-
-                            @foreach ($accounts as $account)
-                                <option value="{{ $account['accountNo'] }}"
-                                    data-balance="{{ number_format($account['availBal'] ?? 0, 2) }}">
-
-                                    {{ $account['ledModelDesc'] }} -
-                                    {{ $account['accountNo'] }}
-
-                                </option>
-                            @endforeach
-
-                        </select>
-                    </div>
-
-                    {{-- الرصيد --}}
-                    <div class="balance-box">
-                        <span class="label">الرصيد المتوفر</span>
-                        <span class="amount" id="available-balance">0.00 SDG</span>
-                    </div>
-
-                    {{-- رقم الحساب --}}
-                    <div class="form-group">
-                        <label for="bban">رقم الحساب</label>
-
-                        <input type="text" id="bban" name="bban" class="form-control"
-                            placeholder="أدخل رقم الحساب أو الرقم التعريفي" required>
-                    </div>
-
-                    {{-- زر التحقق --}}
-                    <button type="button" id="verify-btn" class="btn btn-dark-custom">
-
-                        التحقق
-                    </button>
-
-                    {{-- اسم العميل --}}
-                    <div class="form-group" style="margin-top:15px;">
-                        <label for="customer_name">اسم العميل</label>
-
-                        <input type="text" id="customer_name" name="customer_name" class="form-control"
-                            placeholder="اسم العميل المستفيد" readonly>
-                    </div>
-
-                    {{-- بقية الحقول --}}
-                    <div id="remaining-fields" class="disabled-group">
-
-                        {{-- حساب المستفيد --}}
-                        <div class="form-group">
-
-                            <label for="to_account">
-                                إلى حساب المستفيد
-                            </label>
-
-                            <select id="to_account" name="to_account" class="form-control" required>
-
-                                <option value="">
-                                    -- اختر حساب المستفيد --
-                                </option>
-
-                            </select>
-
-                        </div>
-
-                        {{-- الهاتف --}}
-                        <div class="form-group">
-                            <label for="phone">
-                                رقم الهاتف المحمول (اختياري)
-                            </label>
-
-                            <input type="text" id="phone" name="phone" class="form-control"
-                                placeholder="أدخل رقم الهاتف المحمول">
-                        </div>
-
-                        {{-- التعليق --}}
-                        <div class="form-group">
-                            <label for="note">
-                                التعليق (اختياري)
-                            </label>
-
-                            <input type="text" id="note" name="note" class="form-control"
-                                placeholder="أدخل التعليق">
-                        </div>
-
-                        {{-- المبلغ --}}
-                        <div class="form-group">
-                            <label for="amount">المبلغ</label>
-
-                            <input type="number" id="amount" name="amount" class="form-control"
-                                placeholder="أدخل المبلغ" min="1" required>
-                        </div>
-
-                        {{-- زر التحويل --}}
-                        <button type="submit" id="submit-transfer-btn" class="btn btn-dark-custom"
-                            style="margin-top:10px;">
-
-                            تحويل
-                        </button>
-
-                    </div>
-
-                </form>
+                @foreach ($errors->all() as $error)
+                    <div>{{ $error }}</div>
+                @endforeach
 
             </div>
+        @endif
+
+        <div id="ajax-error"
+             class="alert alert-error"
+             style="display:none; margin:15px;">
+        </div>
+
+        <div class="info-card">
+
+            <form method="POST"
+                  action="{{ route('transfer-internal.submit') }}"
+                  id="transfer-form">
+
+                @csrf
+
+                {{-- من حساب --}}
+                <div class="form-group">
+
+                    <label for="from_account">من حساب</label>
+
+                    <select id="from_account"
+                            name="from_account"
+                            class="form-control">
+
+                        @foreach ($accounts as $account)
+
+                            <option value="{{ $account['accountNo'] }}"
+                                    data-balance="{{ number_format($account['availBal'] ?? 0, 2) }}">
+
+                                {{ $account['ledModelDesc'] }}
+                                -
+                                {{ $account['accountNo'] }}
+
+                            </option>
+
+                        @endforeach
+
+                    </select>
+
+                </div>
+
+                {{-- الرصيد --}}
+                <div class="balance-box">
+
+                    <span class="label">الرصيد المتوفر</span>
+
+                    <span class="amount"
+                          id="available-balance">
+
+                        0.00 SDG
+
+                    </span>
+
+                </div>
+
+                {{-- رقم الحساب --}}
+                <div class="form-group">
+
+                    <label for="bban">رقم الحساب</label>
+
+                    <input type="text"
+                           id="bban"
+                           name="bban"
+                           class="form-control"
+                           placeholder="أدخل رقم الحساب أو الرقم التعريفي"
+                           required>
+
+                </div>
+
+                {{-- زر التحقق --}}
+                <button type="button"
+                        id="verify-btn"
+                        class="btn btn-dark-custom">
+
+                    التحقق
+
+                </button>
+
+                {{-- اسم العميل --}}
+                <div class="form-group"
+                     style="margin-top:15px;">
+
+                    <label for="customer_name">
+                        اسم العميل
+                    </label>
+
+                    <input type="text"
+                           id="customer_name"
+                           name="customer_name"
+                           class="form-control"
+                           placeholder="اسم العميل المستفيد"
+                           readonly>
+
+                </div>
+
+                {{-- الحقول بعد التحقق --}}
+                <div id="remaining-fields"
+                     class="disabled-group">
+
+                    {{-- حساب المستفيد --}}
+                    <div class="form-group">
+
+                        <label for="to_account">
+                            إلى حساب المستفيد
+                        </label>
+
+                        <select id="to_account"
+                                name="to_account"
+                                class="form-control"
+                                required>
+
+                            <option value="">
+                                -- اختر حساب المستفيد --
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    {{-- الهاتف --}}
+                    <div class="form-group">
+
+                        <label for="phone">
+                            رقم الهاتف المحمول (اختياري)
+                        </label>
+
+                        <input type="text"
+                               id="phone"
+                               name="phone"
+                               class="form-control"
+                               placeholder="أدخل رقم الهاتف المحمول">
+
+                    </div>
+
+                    {{-- التعليق --}}
+                    <div class="form-group">
+
+                        <label for="note">
+                            التعليق (اختياري)
+                        </label>
+
+                        <input type="text"
+                               id="note"
+                               name="note"
+                               class="form-control"
+                               placeholder="أدخل التعليق">
+
+                    </div>
+
+                    {{-- المبلغ --}}
+                    <div class="form-group">
+
+                        <label for="amount">
+                            المبلغ
+                        </label>
+
+                        <input type="number"
+                               id="amount"
+                               name="amount"
+                               class="form-control"
+                               placeholder="أدخل المبلغ"
+                               min="1"
+                               required>
+
+                    </div>
+
+                    {{-- زر التحويل --}}
+                    <button type="submit"
+                            id="submit-transfer-btn"
+                            class="btn btn-dark-custom"
+                            style="margin-top:10px;">
+
+                        تحويل
+
+                    </button>
+
+                </div>
+
+            </form>
 
         </div>
 
     </div>
 
-    <style>
-        .page-container {
-            font-family: 'Cairo', sans-serif;
-            background-color: #f8f9fa;
-            min-height: 100vh;
-            direction: rtl;
-        }
+</div>
 
-        .page-header {
-            background-color: #ffffff;
-            padding: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 1px solid #e9ecef;
-        }
+<style>
 
-        .page-header h2 {
-            font-size: 18px;
-            color: #333;
-            margin: 0;
-            font-weight: bold;
-        }
+.page-container{
+    font-family:'Cairo',sans-serif;
+    background-color:#f8f9fa;
+    min-height:100vh;
+    direction:rtl;
+}
 
-        .back-btn {
-            color: #333;
-            font-size: 20px;
-            text-decoration: none;
-        }
+.page-header{
+    background-color:#ffffff;
+    padding:15px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    border-bottom:1px solid #e9ecef;
+}
 
-        .info-card {
-            background: #ffffff;
-            border-radius: 12px;
-            padding: 20px;
-            margin: 15px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
-        }
+.page-header h2{
+    font-size:18px;
+    color:#333;
+    margin:0;
+    font-weight:bold;
+}
 
-        .form-group {
-            margin-bottom: 18px;
-            position: relative;
-        }
+.back-btn{
+    color:#333;
+    font-size:20px;
+    text-decoration:none;
+}
 
-        .form-group label {
-            display: block;
-            font-size: 14px;
-            color: #888;
-            margin-bottom: 6px;
-            font-weight: 600;
-        }
+.info-card{
+    background:#ffffff;
+    border-radius:12px;
+    padding:20px;
+    margin:15px;
+    box-shadow:0 2px 6px rgba(0,0,0,0.02);
+}
 
-        .form-control {
-            width: 100%;
-            padding: 12px 15px;
-            border: 1.5px solid #2d3748;
-            border-radius: 10px;
-            font-size: 15px;
-            color: #333;
-            background-color: #fff;
-            box-sizing: border-box;
-            outline: none;
-            transition: border-color 0.2s;
-        }
+.form-group{
+    margin-bottom:18px;
+    position:relative;
+}
 
-        .form-control:focus {
-            border-color: #2d8a4e;
-        }
+.form-group label{
+    display:block;
+    font-size:14px;
+    color:#888;
+    margin-bottom:6px;
+    font-weight:600;
+}
 
-        .form-control[readonly] {
-            background-color: #f8f9fa;
-            border-color: #e2e8f0;
-            color: #4a5568;
-        }
+.form-control{
+    width:100%;
+    padding:12px 15px;
+    border:1.5px solid #2d3748;
+    border-radius:10px;
+    font-size:15px;
+    color:#333;
+    background-color:#fff;
+    box-sizing:border-box;
+    outline:none;
+    transition:border-color 0.2s;
+}
 
-        .disabled-group {
-            opacity: 0.5;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-        }
+.form-control:focus{
+    border-color:#2d8a4e;
+}
 
-        .btn-dark-custom {
-            width: 100%;
-            background-color: #4a5568;
-            color: #ffffff;
-            border: none;
-            padding: 14px;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 8px;
-            transition: background-color 0.2s;
-        }
+.form-control[readonly]{
+    background-color:#f8f9fa;
+    border-color:#e2e8f0;
+    color:#4a5568;
+}
 
-        .btn-dark-custom:hover {
-            background-color: #313b4e;
-        }
+.disabled-group{
+    opacity:0.5;
+    pointer-events:none;
+    transition:opacity 0.3s ease;
+}
 
-        .btn-dark-custom:disabled {
-            background-color: #a0aec0;
-            cursor: not-allowed;
-        }
+.btn-dark-custom{
+    width:100%;
+    background-color:#4a5568;
+    color:#ffffff;
+    border:none;
+    padding:14px;
+    border-radius:10px;
+    font-size:16px;
+    font-weight:bold;
+    cursor:pointer;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:8px;
+    transition:background-color 0.2s;
+}
 
-        .balance-box {
-            background-color: #f8f9fa;
-            border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 15px;
-            text-align: right;
-        }
+.btn-dark-custom:hover{
+    background-color:#313b4e;
+}
 
-        .balance-box .label {
-            font-size: 13px;
-            color: #718096;
-            display: block;
-        }
+.btn-dark-custom:disabled{
+    background-color:#a0aec0;
+    cursor:not-allowed;
+}
 
-        .balance-box .amount {
-            font-size: 16px;
-            font-weight: bold;
-            color: #2d3748;
-        }
+.balance-box{
+    background-color:#f8f9fa;
+    border-radius:8px;
+    padding:12px;
+    margin-bottom:15px;
+    text-align:right;
+}
 
-        .alert {
-            padding: 12px;
-            border-radius: 8px;
-        }
+.balance-box .label{
+    font-size:13px;
+    color:#718096;
+    display:block;
+}
 
-        .alert-success {
-            background: #d4edda;
-            color: #155724;
-        }
+.balance-box .amount{
+    font-size:16px;
+    font-weight:bold;
+    color:#2d3748;
+}
 
-        .alert-error {
-            background: #f8d7da;
-            color: #721c24;
-        }
-    </style>
+.alert{
+    padding:12px;
+    border-radius:8px;
+}
+
+.alert-success{
+    background:#d4edda;
+    color:#155724;
+}
+
+.alert-error{
+    background:#f8d7da;
+    color:#721c24;
+}
+
+</style>
 
 @endsection
 
 @section('scripts')
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-    <script>
-        $(document).ready(function() {
+<script>
 
-            // تحديث الرصيد
-            function updateBalance() {
+$(document).ready(function () {
 
-                let selectedOption = $('#from_account option:selected');
+    // تحديث الرصيد
+    function updateBalance() {
 
-                let balance = selectedOption.data('balance');
+        let selectedOption = $('#from_account option:selected');
 
-                if (balance !== undefined && balance !== null) {
+        let balance = selectedOption.data('balance');
 
-                    $('#available-balance').text(balance + ' SDG');
+        if (balance !== undefined && balance !== null) {
 
-                } else {
+            $('#available-balance').text(balance + ' SDG');
 
-                    $('#available-balance').text('0.00 SDG');
-                }
-            }
+        } else {
 
-            updateBalance();
+            $('#available-balance').text('0.00 SDG');
+        }
+    }
 
-            $('#from_account').on('change', updateBalance);
+    updateBalance();
 
-            // التحقق من الحساب
-            $('#verify-btn').click(function() {
+    $('#from_account').on('change', updateBalance);
 
-                let customerNum = $('#bban').val().trim();
+    // التحقق
+    $('#verify-btn').click(function () {
 
-                let btn = $(this);
+        let customerNum = $('#bban').val().trim();
 
-                if (customerNum === "") {
+        let btn = $(this);
 
-                    alert("الرجاء إدخال رقم الحساب للتحقق");
+        if (customerNum === "") {
 
-                    return;
-                }
+            alert("الرجاء إدخال رقم الحساب");
 
-                btn.prop('disabled', true)
-                    .text('جاري التحقق...');
+            return;
+        }
 
-                $('#ajax-error').hide();
+        btn.prop('disabled', true)
+           .text('جاري التحقق...');
 
-                // تنظيف القائمة
-                $('#to_account').empty();
+        $('#ajax-error').hide();
 
-                $('#to_account').append(`
+        $('#to_account').empty();
+
+        $('#to_account').append(`
             <option value="">
                 -- اختر حساب المستفيد --
             </option>
         `);
 
-                $.ajax({
+        $.ajax({
 
-                    url: `/bank-api/customer/name/${customerNum}`,
+            url: `/bank-api/customer/name/${customerNum}`,
 
-                    method: "GET",
+            method: "GET",
 
-                    headers: {
-                        "X-CSRF-TOKEN": $('input[name="_token"]').val(),
-                        "Accept": "application/json"
-                    },
+            dataType: "json",
 
-                    success: function(response) {
+            success: function (response) {
 
-                        console.log(response);
+                console.log("FULL RESPONSE:", response);
 
-                        if (response.success && response.name) {
+                $('#customer_name').val('');
 
-                            // اسم العميل
-                            $('#customer_name').val(response.name);
+                if (response.success === true) {
 
-                            // التأكد من وجود الحسابات
-                            if (response.accounts &&
-                                response.accounts.length > 0) {
+                    $('#customer_name').val(response.name);
 
-                                response.accounts.forEach(function(acc) {
+                    let accounts = response.accounts;
 
-                                    $('#to_account').append(`
+                    console.log("ACCOUNTS:", accounts);
+
+                    // تحويل String إلى Array لو لازم
+                    if (typeof accounts === 'string') {
+
+                        try {
+
+                            accounts = JSON.parse(accounts);
+
+                        } catch (e) {
+
+                            accounts = [];
+                        }
+                    }
+
+                    console.log("FINAL:", accounts);
+
+                    if (Array.isArray(accounts) &&
+                        accounts.length > 0) {
+
+                        $('#to_account').empty();
+
+                        $('#to_account').append(`
+                            <option value="">
+                                -- اختر حساب المستفيد --
+                            </option>
+                        `);
+
+                        $.each(accounts, function(index, acc) {
+
+                            console.log(acc);
+
+                            $('#to_account').append(`
                                 <option value="${acc.accountNo}">
                                     ${acc.ledModelDesc} - ${acc.accountNo}
                                 </option>
                             `);
 
-                                });
+                        });
 
-                                // تفعيل الحقول
-                                $('#remaining-fields')
-                                    .removeClass('disabled-group');
+                        // تفعيل الحقول
+                        $('#remaining-fields')
+                            .css({
+                                'opacity': '1',
+                                'pointer-events': 'auto'
+                            });
 
-                            } else {
-
-                                $('#ajax-error')
-                                    .text('تم العثور على العميل لكن لا توجد حسابات')
-                                    .show();
-                            }
-
-                        } else {
-
-                            $('#ajax-error')
-                                .text('فشل التحقق من الحساب')
-                                .show();
-                        }
-
-                        btn.prop('disabled', false)
-                            .text('التحقق');
-                    },
-
-                    error: function(xhr) {
-
-                        console.log(xhr);
-
-                        let errorMsg = "حدث خطأ أثناء التحقق";
-
-                        if (xhr.responseJSON &&
-                            xhr.responseJSON.message) {
-
-                            errorMsg = xhr.responseJSON.message;
-                        }
+                    } else {
 
                         $('#ajax-error')
-                            .text(errorMsg)
+                            .text('تم العثور على العميل لكن لا توجد حسابات')
                             .show();
-
-                        btn.prop('disabled', false)
-                            .text('التحقق');
                     }
 
-                });
+                } else {
 
-            });
+                    $('#ajax-error')
+                        .text('فشل التحقق من الحساب')
+                        .show();
+                }
 
-            // عند إرسال التحويل
-            $('#transfer-form').submit(function() {
+                btn.prop('disabled', false)
+                   .text('التحقق');
+            },
 
-                $('#submit-transfer-btn')
-                    .prop('disabled', true)
-                    .text('جاري إرسال طلب التحويل...');
-            });
+            error: function (xhr) {
+
+                console.log(xhr);
+
+                let errorMsg = "حدث خطأ أثناء التحقق";
+
+                if (xhr.responseJSON &&
+                    xhr.responseJSON.message) {
+
+                    errorMsg = xhr.responseJSON.message;
+                }
+
+                $('#ajax-error')
+                    .text(errorMsg)
+                    .show();
+
+                btn.prop('disabled', false)
+                   .text('التحقق');
+            }
 
         });
-    </script>
+
+    });
+
+    // إرسال التحويل
+    $('#transfer-form').submit(function () {
+
+        $('#submit-transfer-btn')
+            .prop('disabled', true)
+            .text('جاري إرسال طلب التحويل...');
+    });
+
+});
+
+</script>
 
 @endsection
