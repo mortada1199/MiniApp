@@ -258,7 +258,7 @@
                 btn.prop('disabled', true).text('جاري التحقق...');
                 $('#ajax-error').hide();
                 
-                // تصفير القائمة قبل البدء بالطلب
+                // إعادة تهيئة تامة للقائمة المنسدلة للمستفيد
                 $('#to_account').html('<option value="">-- اختر حساب المستفيد --</option>');
 
                 $.ajax({
@@ -273,17 +273,18 @@
                             $('#customer_name').val(response.name);
 
                             if (response.accounts && response.accounts.length > 0) {
+                                let accountsList = response.accounts;
                                 let optionsHtml = '<option value="">-- اختر حساب المستفيد --</option>';
 
-                                // بناء خيارات الحسابات
-                                $.each(response.accounts, function(index, acc) {
+                                // بناء كود الـ HTML الخاص بالخيارات الجديدة بالكامل واستبدال القديم فوراً
+                                $.each(accountsList, function(index, acc) {
                                     optionsHtml += `<option value="${acc.accountNo}">${acc.ledModelDesc} - ${acc.accountNo}</option>`;
                                 });
 
-                                // استبدال محتوى القائمة بالكامل لضمان التحديث الفوري بالمتصفح
+                                // استخدام .html لتحديث العناصر بشكل فوري وإجبار المتصفح على عرضها
                                 $('#to_account').html(optionsHtml);
                                 
-                                // تفعيل الحقول المخفية
+                                // تفعيل الحقول المخفية وإزالة التعطيل عبر الـ CSS والـ Pointer Events
                                 $('#remaining-fields').removeClass('disabled-group');
                             } else {
                                 $('#ajax-error').text("تم التحقق من الاسم، ولكن تعذر جلب حسابات المستفيد").show();
