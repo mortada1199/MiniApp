@@ -1,17 +1,28 @@
 @extends('layouts.app')
+
 @section('title', 'التحويل الي عميل داخل البنك')
 
 @section('content')
+
     <div class="page-container">
+
         <div class="page-header">
-            <a href="{{ route('dashboard') }}" class="back-btn"><i class="fas fa-arrow-right"></i></a>
+            <a href="{{ route('dashboard') }}" class="back-btn">
+                <i class="fas fa-arrow-right"></i>
+            </a>
+
             <h2>التحويل الي عميل داخل البنك</h2>
+
             <div style="width:36px"></div>
         </div>
 
         <div class="page-content fade-in">
+
             @if (session('success'))
-                <div class="alert alert-success"><i class="fas fa-check-circle"></i> {{ session('success') }}</div>
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle"></i>
+                    {{ session('success') }}
+                </div>
             @endif
 
             @if ($errors->any())
@@ -22,79 +33,124 @@
                 </div>
             @endif
 
-            <div id="ajax-error" class="alert alert-error" style="display:none; margin: 15px;"></div>
+            <div id="ajax-error" class="alert alert-error" style="display:none; margin:15px;"></div>
 
             <div class="info-card">
+
                 <form method="POST" action="{{ route('transfer-internal.submit') }}" id="transfer-form">
+
                     @csrf
 
+                    {{-- من حساب --}}
                     <div class="form-group">
                         <label for="from_account">من حساب</label>
+
                         <select id="from_account" name="from_account" class="form-control">
+
                             @foreach ($accounts as $account)
                                 <option value="{{ $account['accountNo'] }}"
                                     data-balance="{{ number_format($account['availBal'] ?? 0, 2) }}">
-                                    {{ $account['ledModelDesc'] }} - {{ $account['accountNo'] }}
+
+                                    {{ $account['ledModelDesc'] }} -
+                                    {{ $account['accountNo'] }}
+
                                 </option>
                             @endforeach
+
                         </select>
                     </div>
 
+                    {{-- الرصيد --}}
                     <div class="balance-box">
                         <span class="label">الرصيد المتوفر</span>
                         <span class="amount" id="available-balance">0.00 SDG</span>
                     </div>
 
+                    {{-- رقم الحساب --}}
                     <div class="form-group">
                         <label for="bban">رقم الحساب</label>
+
                         <input type="text" id="bban" name="bban" class="form-control"
                             placeholder="أدخل رقم الحساب أو الرقم التعريفي" required>
                     </div>
 
-                    <button type="button" id="verify-btn" class="btn btn-dark-custom">التحقق</button>
+                    {{-- زر التحقق --}}
+                    <button type="button" id="verify-btn" class="btn btn-dark-custom">
 
-                    <div class="form-group" style="margin-top: 15px;">
+                        التحقق
+                    </button>
+
+                    {{-- اسم العميل --}}
+                    <div class="form-group" style="margin-top:15px;">
                         <label for="customer_name">اسم العميل</label>
+
                         <input type="text" id="customer_name" name="customer_name" class="form-control"
                             placeholder="اسم العميل المستفيد" readonly>
                     </div>
 
+                    {{-- بقية الحقول --}}
                     <div id="remaining-fields" class="disabled-group">
 
+                        {{-- حساب المستفيد --}}
                         <div class="form-group">
-                            <label for="to_account">إلى حساب المستفيد</label>
+
+                            <label for="to_account">
+                                إلى حساب المستفيد
+                            </label>
+
                             <select id="to_account" name="to_account" class="form-control" required>
-                                <option value="">-- اختر حساب المستفيد --</option>
+
+                                <option value="">
+                                    -- اختر حساب المستفيد --
+                                </option>
+
                             </select>
+
                         </div>
 
+                        {{-- الهاتف --}}
                         <div class="form-group">
-                            <label for="phone">رقم الهاتف المحمول (اختياري)</label>
+                            <label for="phone">
+                                رقم الهاتف المحمول (اختياري)
+                            </label>
+
                             <input type="text" id="phone" name="phone" class="form-control"
                                 placeholder="أدخل رقم الهاتف المحمول">
                         </div>
 
+                        {{-- التعليق --}}
                         <div class="form-group">
-                            <label for="note">التعليق (اختياري)</label>
+                            <label for="note">
+                                التعليق (اختياري)
+                            </label>
+
                             <input type="text" id="note" name="note" class="form-control"
                                 placeholder="أدخل التعليق">
                         </div>
 
+                        {{-- المبلغ --}}
                         <div class="form-group">
                             <label for="amount">المبلغ</label>
+
                             <input type="number" id="amount" name="amount" class="form-control"
                                 placeholder="أدخل المبلغ" min="1" required>
                         </div>
 
+                        {{-- زر التحويل --}}
                         <button type="submit" id="submit-transfer-btn" class="btn btn-dark-custom"
-                            style="margin-top: 10px;">
+                            style="margin-top:10px;">
+
                             تحويل
                         </button>
+
                     </div>
 
                 </form>
+
             </div>
+
         </div>
+
     </div>
 
     <style>
@@ -222,98 +278,170 @@
             font-weight: bold;
             color: #2d3748;
         }
+
+        .alert {
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
     </style>
+
 @endsection
 
 @section('scripts')
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
     <script>
         $(document).ready(function() {
 
-            // دالة تحديث الرصيد المتوفر للمرسل
+            // تحديث الرصيد
             function updateBalance() {
+
                 let selectedOption = $('#from_account option:selected');
+
                 let balance = selectedOption.data('balance');
 
                 if (balance !== undefined && balance !== null) {
+
                     $('#available-balance').text(balance + ' SDG');
+
                 } else {
+
                     $('#available-balance').text('0.00 SDG');
                 }
             }
 
             updateBalance();
+
             $('#from_account').on('change', updateBalance);
 
-            // عند الضغط على زر التحقق
+            // التحقق من الحساب
             $('#verify-btn').click(function() {
+
                 let customerNum = $('#bban').val().trim();
+
                 let btn = $(this);
 
-                if (customerNum == "") {
+                if (customerNum === "") {
+
                     alert("الرجاء إدخال رقم الحساب للتحقق");
+
                     return;
                 }
 
-                btn.prop('disabled', true).text('جاري التحقق...');
+                btn.prop('disabled', true)
+                    .text('جاري التحقق...');
+
                 $('#ajax-error').hide();
-                
-                // إعادة تهيئة تامة للقائمة المنسدلة للمستفيد
-                $('#to_account').html('<option value="">-- اختر حساب المستفيد --</option>');
+
+                // تنظيف القائمة
+                $('#to_account').empty();
+
+                $('#to_account').append(`
+            <option value="">
+                -- اختر حساب المستفيد --
+            </option>
+        `);
 
                 $.ajax({
+
                     url: `/bank-api/customer/name/${customerNum}`,
+
                     method: "GET",
+
                     headers: {
                         "X-CSRF-TOKEN": $('input[name="_token"]').val(),
                         "Accept": "application/json"
                     },
+
                     success: function(response) {
+
+                        console.log(response);
+
                         if (response.success && response.name) {
+
+                            // اسم العميل
                             $('#customer_name').val(response.name);
 
-                            if (response.accounts && response.accounts.length > 0) {
-                                let accountsList = response.accounts;
-                                let optionsHtml = '<option value="">-- اختر حساب المستفيد --</option>';
+                            // التأكد من وجود الحسابات
+                            if (response.accounts &&
+                                response.accounts.length > 0) {
 
-                                // بناء كود الـ HTML الخاص بالخيارات الجديدة بالكامل واستبدال القديم فوراً
-                                $.each(accountsList, function(index, acc) {
-                                    optionsHtml += `<option value="${acc.accountNo}">${acc.ledModelDesc} - ${acc.accountNo}</option>`;
+                                response.accounts.forEach(function(acc) {
+
+                                    $('#to_account').append(`
+                                <option value="${acc.accountNo}">
+                                    ${acc.ledModelDesc} - ${acc.accountNo}
+                                </option>
+                            `);
+
                                 });
 
-                                // استخدام .html لتحديث العناصر بشكل فوري وإجبار المتصفح على عرضها
-                                $('#to_account').html(optionsHtml);
-                                
-                                // تفعيل الحقول المخفية وإزالة التعطيل عبر الـ CSS والـ Pointer Events
-                                $('#remaining-fields').removeClass('disabled-group');
+                                // تفعيل الحقول
+                                $('#remaining-fields')
+                                    .removeClass('disabled-group');
+
                             } else {
-                                $('#ajax-error').text("تم التحقق من الاسم، ولكن تعذر جلب حسابات المستفيد").show();
+
+                                $('#ajax-error')
+                                    .text('تم العثور على العميل لكن لا توجد حسابات')
+                                    .show();
                             }
 
-                            btn.prop('disabled', false).text('التحقق');
                         } else {
-                            $('#ajax-error').text("فشل التحقق، العميل غير موجود").show();
-                            btn.prop('disabled', false).text('التحقق');
+
+                            $('#ajax-error')
+                                .text('فشل التحقق من الحساب')
+                                .show();
                         }
+
+                        btn.prop('disabled', false)
+                            .text('التحقق');
                     },
+
                     error: function(xhr) {
-                        if (xhr.status === 401) {
-                            $('#ajax-error').text("انتهت صلاحية الجلسة، يرجى إعادة تسجيل الدخول").show();
-                        } else {
-                            let errorMsg = "تعذر التحقق من رقم الحساب، يرجى مراجعة سيرفر النفق (Pinggy)";
-                            if (xhr.responseJSON && xhr.responseJSON.debug_error) {
-                                errorMsg += " (" + xhr.responseJSON.debug_error + ")";
-                            }
-                            $('#ajax-error').text(errorMsg).show();
+
+                        console.log(xhr);
+
+                        let errorMsg = "حدث خطأ أثناء التحقق";
+
+                        if (xhr.responseJSON &&
+                            xhr.responseJSON.message) {
+
+                            errorMsg = xhr.responseJSON.message;
                         }
-                        btn.prop('disabled', false).text('التحقق');
+
+                        $('#ajax-error')
+                            .text(errorMsg)
+                            .show();
+
+                        btn.prop('disabled', false)
+                            .text('التحقق');
                     }
+
                 });
+
             });
 
+            // عند إرسال التحويل
             $('#transfer-form').submit(function() {
-                $('#submit-transfer-btn').prop('disabled', true).text('جاري إرسال طلب التحويل...');
+
+                $('#submit-transfer-btn')
+                    .prop('disabled', true)
+                    .text('جاري إرسال طلب التحويل...');
             });
+
         });
     </script>
+
 @endsection
