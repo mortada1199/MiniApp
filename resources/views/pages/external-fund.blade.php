@@ -8,38 +8,40 @@
             <h2>التحويل الي عميل داخل البنك</h2>
         </div>
 
-        <div class="page-content fade-in">
-            <div id="ajax-error" class="alert alert-error" style="display:none; margin: 15px; padding: 10px; background: #fee; color: #cc0000; border: 1px solid #cc0000;"></div>
+        <div class="page-content">
+            <div id="ajax-error" class="alert alert-error" style="display:none; margin: 15px; padding: 10px; background: #fee; color: #cc0000;"></div>
 
             <div class="info-card">
                 <form method="POST" action="{{ route('transfer-internal.submit') }}" id="transfer-form">
                     @csrf
+                    <!-- اختيار الحساب المرسل -->
                     <div class="form-group">
                         <label for="from_account">من حساب</label>
                         <select id="from_account" name="from_account" class="form-control">
                             @foreach ($accounts as $account)
-                                <option value="{{ $account['accountNo'] }}" data-balance="{{ number_format($account['availBal'] ?? 0, 2) }}">
+                                <option value="{{ $account['accountNo'] }}" data-balance="{{ $account['availBal'] ?? 0 }}">
                                     {{ $account['ledModelDesc'] }} - {{ $account['accountNo'] }}
                                 </option>
                             @endforeach
                         </select>
                     </div>
 
+                    <!-- الرصيد -->
                     <div class="balance-box">
                         <span class="label">الرصيد المتوفر</span>
                         <span class="amount" id="available-balance">0.00 SDG</span>
                     </div>
 
                     <div class="form-group">
-                        <label for="bban">رقم الحساب</label>
-                        <input type="text" id="bban" name="bban" class="form-control" placeholder="أدخل رقم الحساب أو الرقم التعريفي" required>
+                        <label for="bban">رقم حساب المستفيد</label>
+                        <input type="text" id="bban" name="bban" class="form-control" placeholder="أدخل رقم الحساب" required>
                     </div>
 
                     <button type="button" id="verify-btn" class="btn btn-dark-custom">التحقق</button>
 
                     <div class="form-group" style="margin-top: 15px;">
                         <label for="customer_name">اسم العميل</label>
-                        <input type="text" id="customer_name" name="customer_name" class="form-control" placeholder="اسم العميل المستفيد" readonly>
+                        <input type="text" id="customer_name" name="customer_name" class="form-control" readonly>
                     </div>
 
                     <div id="remaining-fields">
@@ -53,7 +55,7 @@
                             <label for="amount">المبلغ</label>
                             <input type="number" id="amount" name="amount" class="form-control" placeholder="أدخل المبلغ" min="1" required>
                         </div>
-                        <button type="submit" id="submit-transfer-btn" class="btn btn-dark-custom">تحويل</button>
+                        <button type="submit" class="btn btn-dark-custom">تحويل</button>
                     </div>
                 </form>
             </div>
@@ -65,46 +67,50 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     $(document).ready(function() {
+        // دالة تحديث الرصيد للمرسل
+        function updateBalance() {
+            let selectedOption = $('#from_account option:selected');
+            let balance = selectedOption.data('balance');
+            // التأكد من تنسيق الرقم
+            let formattedBalance = parseFloat(balance).toLocaleString(undefined, {minimumFractionDigits: 2});
+            $('#available-balance').text(formattedBalance + ' SDG');
+        }
+
+        // تشغيل الدالة عند تغيير الحساب وعند بداية تحميل الصفحة
+        $('#from_account').on('change', updateBalance);
+        updateBalance();
+
         $('#verify-btn').click(function() {
-            let customerNum = $('#bban').val().trim();
+            let bban = $('#bban').val().trim();
             let btn = $(this);
 
-            if (customerNum == "") { alert("الرجاء إدخال رقم الحساب"); return; }
+            if (!bban) { alert("الرجاء إدخال رقم الحساب"); return; }
 
             btn.prop('disabled', true).text('جاري التحقق...');
             $('#ajax-error').hide();
             $('#to_account').html('<option value="">-- اختر حساب المستفيد --</option>').prop('disabled', true);
 
             $.ajax({
-                url: `/bank-api/customer/name/${customerNum}`,
+                url: `/bank-api/customer/name/${bban}`,
                 method: "GET",
-                headers: { "X-CSRF-TOKEN": $('input[name="_token"]').val(), "Accept": "application/json" },
                 success: function(response) {
-                    // 1. طباعة الرد في الكونسول
-                    console.log("البيانات القادمة من السيرفر:", response);
-                    
-                    // 2. إظهار تنبيه على الهاتف لمراجعة البيانات
-                    alert("البيانات القادمة: " + JSON.stringify(response));
-
                     if (response.success && response.name) {
                         $('#customer_name').val(response.name);
                         
-                        // فحص المصفوفة
                         if (response.accounts && response.accounts.length > 0) {
                             $.each(response.accounts, function(index, acc) {
                                 $('#to_account').append(`<option value="${acc.accountNo}">${acc.ledModelDesc} - ${acc.accountNo}</option>`);
                             });
                             $('#to_account').prop('disabled', false);
                         } else {
-                            $('#ajax-error').text("تم العثور على العميل، لكن لا توجد حسابات مرتبطة به.").show();
+                            $('#ajax-error').text("تم العثور على العميل، لكن لا توجد حسابات له.").show();
                         }
                     } else {
-                        $('#ajax-error').text("العميل غير موجود أو هناك خطأ في البيانات.").show();
+                        $('#ajax-error').text("العميل غير موجود").show();
                     }
                     btn.prop('disabled', false).text('التحقق');
                 },
-                error: function(xhr) {
-                    alert("خطأ في الاتصال بالسيرفر. الحالة: " + xhr.status);
+                error: function() {
                     $('#ajax-error').text("خطأ في الاتصال").show();
                     btn.prop('disabled', false).text('التحقق');
                 }
