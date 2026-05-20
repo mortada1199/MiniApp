@@ -67,16 +67,14 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     $(document).ready(function() {
-        // دالة تحديث الرصيد للمرسل
+        // تحديث رصيد المرسل
         function updateBalance() {
             let selectedOption = $('#from_account option:selected');
             let balance = selectedOption.data('balance');
-            // التأكد من تنسيق الرقم
             let formattedBalance = parseFloat(balance).toLocaleString(undefined, {minimumFractionDigits: 2});
             $('#available-balance').text(formattedBalance + ' SDG');
         }
 
-        // تشغيل الدالة عند تغيير الحساب وعند بداية تحميل الصفحة
         $('#from_account').on('change', updateBalance);
         updateBalance();
 
@@ -94,11 +92,12 @@
                 url: `/bank-api/customer/name/${bban}`,
                 method: "GET",
                 success: function(response) {
+                    // التعديل هنا: استخدام response.customerAccounts بدلاً من response.accounts
                     if (response.success && response.name) {
                         $('#customer_name').val(response.name);
                         
-                        if (response.accounts && response.accounts.length > 0) {
-                            $.each(response.accounts, function(index, acc) {
+                        if (response.customerAccounts && response.customerAccounts.length > 0) {
+                            $.each(response.customerAccounts, function(index, acc) {
                                 $('#to_account').append(`<option value="${acc.accountNo}">${acc.ledModelDesc} - ${acc.accountNo}</option>`);
                             });
                             $('#to_account').prop('disabled', false);
@@ -111,7 +110,7 @@
                     btn.prop('disabled', false).text('التحقق');
                 },
                 error: function() {
-                    $('#ajax-error').text("خطأ في الاتصال").show();
+                    $('#ajax-error').text("خطأ في الاتصال بالسيرفر").show();
                     btn.prop('disabled', false).text('التحقق');
                 }
             });
