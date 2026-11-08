@@ -190,11 +190,7 @@
 
             <div class="data-item">
                 <div class="data-label">تعليقات</div>
-<<<<<<< HEAD
-                <div class="data-value">{{ $request['notes'] ?? '-----' }}</div>
-=======
                 <div class="data-value">{{ $request['note'] ?? '-----' }}</div>
->>>>>>> master
             </div>
 
             <div class="data-item">

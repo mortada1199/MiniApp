@@ -2,11 +2,6 @@
 
 namespace App\Http\Controllers;
 
-<<<<<<< HEAD
-abstract class Controller
-{
-    //
-=======
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Http;
 
@@ -24,5 +19,4 @@ abstract class Controller
 
         return $token ? $request->withToken($token) : $request;
     }
->>>>>>> master
 }
