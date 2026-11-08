@@ -190,7 +190,7 @@
 
             <div class="data-item">
                 <div class="data-label">تعليقات</div>
-                <div class="data-value">{{ $request['notes'] ?? '-----' }}</div>
+                <div class="data-value">{{ $request['note'] ?? '-----' }}</div>
             </div>
 
             <div class="data-item">

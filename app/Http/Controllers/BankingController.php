@@ -2,54 +2,93 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\Response;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Log;
+
 class BankingController extends Controller
 {
+    private const TRANSFER_FAILED = 'حدث خطأ في عملية التحويل، يرجى المحاولة لاحقاً';
+
+    private const CONNECTION_FAILED = 'تعذر الاتصال بخادم البنك، يرجى المحاولة لاحقاً';
+
+    /**
+     * حسابات المستخدم التي يسمح بالتحويل منها (الخانة رقم 14 في رقم الحساب = 1)
+     */
+    private function transferableAccounts(): array
+    {
+        return collect(session('accounts', []))
+            ->filter(function ($account) {
+                $accountNo = trim((string) ($account['accountNo'] ?? ''));
+
+                return strlen($accountNo) >= 14 && $accountNo[13] === '1';
+            })
+            ->values()
+            ->all();
+    }
+
+    /**
+     * إرسال طلب تحويل لـ API البنك. يرجّع null لو فشل الاتصال (مهلة / الخادم غير متاح)
+     */
+    private function postTransfer(array $payload): ?Response
+    {
+        try {
+            $response = $this->tmaApi(session('token'))->post('/transfer', $payload);
+        } catch (ConnectionException $e) {
+            Log::error('TMA transfer: connection failed', ['error' => $e->getMessage()]);
+
+            return null;
+        }
+
+        if ($response->failed()) {
+            Log::warning('TMA transfer: request failed', [
+                'status' => $response->status(),
+                'message' => $response->json('message'),
+            ]);
+        }
+
+        return $response;
+    }
+
     public function intFund()
     {
-        $allAccounts = session('accounts', []);
-        $filteredAccounts = array_filter($allAccounts, function ($account) {
-            $accountNo = trim((string) ($account['accountNo'] ?? ''));
-
-            return strlen($accountNo) >= 14 && $accountNo[13] === '1';
-        });
-        $accounts = collect($filteredAccounts)->values()->all();
+        $accounts = $this->transferableAccounts();
 
         return view('pages.internal-fund', compact('accounts'));
     }
 
     public function submitIntFund(Request $request)
     {
-
-        $type = 'تحويل داخلي ';
+        $type = 'تحويل داخلي';
         $request->validate([
             'accountFrom' => 'required',
-            'accountTo' => 'required',
+            'accountTo' => 'required|different:accountFrom',
             'amount' => 'required|numeric|min:1',
+            'note' => 'nullable|string|max:100',
         ]);
-        $token = Session::get('token');
-        $response = Http::withToken($token)
-            ->post(
-                'https://hbcod-196-1-227-87.run.pinggy-free.link/tma/transfer',
-                [
-                    'accountFrom' => $request->accountFrom,
-                    'accountTo' => $request->accountTo,
-                    'amount' => $request->amount,
-                    'remarkCredit' => 'Salary May',
-                    'remarkDebit' => 'Transfer to checking',
-                ]
-            );
+
+        $remark = $request->filled('note') ? $request->note : $type;
+
+        $response = $this->postTransfer([
+            'accountFrom' => $request->accountFrom,
+            'accountTo' => $request->accountTo,
+            'amount' => $request->amount,
+            'remarkCredit' => $remark,
+            'remarkDebit' => $remark,
+        ]);
+
+        if ($response === null) {
+            return back()->with('error', self::CONNECTION_FAILED)->withInput();
+        }
+
         if ($response->successful()) {
             return view('pages.receipt', compact('request', 'type'));
         }
 
-        return back()->with(
-            'error',
-            'حدث خطأ في عملية التحويل'
-        );
+        return back()
+            ->with('error', $response->json('message') ?? self::TRANSFER_FAILED)
+            ->withInput();
     }
 
     public function accList()
@@ -57,37 +96,32 @@ class BankingController extends Controller
         return view('pages.accounts');
     }
 
-    public function extFund()
+    public function transferInternal()
     {
-        $allAccounts = session('accounts', []);
-        $filteredAccounts = array_filter($allAccounts, function ($account) {
-            $accountNo = trim((string) ($account['accountNo'] ?? ''));
+        $accounts = $this->transferableAccounts();
 
-            return strlen($accountNo) >= 14 && $accountNo[13] === '1';
-        });
-        $accounts = collect($filteredAccounts)->values()->all();
-
-        return view('pages.external-fund', compact('accounts'));
+        return view('pages.transfer-internal', compact('accounts'));
     }
 
-    public function submiTExFund(Request $request)
+    public function submitTransferInternal(Request $request)
     {
-        
         $request->validate([
             'from_account' => 'required',
             'bban' => 'required',
             'amount' => 'required|numeric|min:1',
         ]);
-        $token = Session::get('token');
-        $response = Http::withToken($token)
-            ->acceptJson()
-            ->post('https://hbcod-196-1-227-87.run.pinggy-free.link/tma/transfer', [
-                'accountFrom' => $request->from_account,
-                'accountTo' => $request->bban,
-                'amount' => $request->amount,
-                'remarkCredit' => 'Transfer to customer',
-                'remarkDebit' => 'Transfer to customer',
-            ]);
+
+        $response = $this->postTransfer([
+            'accountFrom' => $request->from_account,
+            'accountTo' => $request->bban,
+            'amount' => $request->amount,
+            'remarkCredit' => 'Transfer to customer',
+            'remarkDebit' => 'Transfer to customer',
+        ]);
+
+        if ($response === null) {
+            return back()->with('error', self::CONNECTION_FAILED)->withInput();
+        }
 
         if ($response->successful()) {
             $type = 'التحويل الى عميل داخل البنك';
@@ -107,27 +141,20 @@ class BankingController extends Controller
             return view('pages.exreceipt', compact('transaction'));
         }
 
-        $errorMessage = $response->json()['message'] ?? 'حدث خطأ في عملية التحويل، يرجى المحاولة لاحقاً';
-
-        return back()->with('error', $errorMessage)->withInput();
+        return back()
+            ->with('error', $response->json('message') ?? self::TRANSFER_FAILED)
+            ->withInput();
     }
 
 
     public function verifyCustomerProxy($customerNum)
     {
         // 1. سحب التوكن من السيشن بأمان
-        $apiToken = session('token');
-
-        // 2. رابط السيرفر (تأكد أن tztfn هو الرابط الشغال حالياً في جهاز الطرف الآخر)
-        $apiUrl = "https://hbcod-196-1-227-87.run.pinggy-free.link/tma/customer/name/{$customerNum}";
-
         try {
-            // 3. تنفيذ الطلب مع تخطي حظر الشهادات
-            $response = Http::withToken($apiToken)
+            // 2. تنفيذ الطلب مع تخطي حظر الشهادات (الرابط والمهلة من config/services.php)
+            $response = $this->tmaApi(session('token'))
                 ->withoutVerifying()
-                ->acceptJson()
-                ->timeout(10) // وضع حد أقصى للانتظار 10 ثوانٍ حتى لا يعلق السيرفر
-                ->get($apiUrl);
+                ->get('/customer/name/'.rawurlencode($customerNum));
 
             if ($response->successful()) {
                 return response()->json($response->json());

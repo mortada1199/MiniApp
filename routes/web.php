@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', fn () => redirect()->route('login'));
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
-Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 
 // Protected routes
@@ -21,8 +21,8 @@ Route::get('/internal-fund', [BankingController::class, 'intFund'])->name('inter
 Route::post('/internal-fund', [BankingController::class, 'submitIntFund'])->name('internal-fund.submit');
 Route::get('/transfer-bban', [BankingController::class, 'tranToBBAN'])->name('transfer-bban');
 Route::post('/transfer-bban/verify', [BankingController::class, 'verifyBban'])->name('transfer-bban.verify');
-Route::get('/transfer-internal', [BankingController::class, 'extFund'])->name('transfer-internal');
-Route::post('/transfer-internal', [BankingController::class, 'submiTExFund'])->name('transfer-internal.submit');
+Route::get('/transfer-internal', [BankingController::class, 'transferInternal'])->name('transfer-internal'); // تحويل الى عميل داخل البنك
+Route::post('/transfer-internal', [BankingController::class, 'submitTransferInternal'])->name('transfer-internal.submit');
 Route::get('/bank-api/customer/name/{customerNum}', [BankingController::class, 'verifyCustomerProxy']);
 
 

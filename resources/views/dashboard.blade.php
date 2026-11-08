@@ -41,9 +41,12 @@
     <!-- Header -->
     <div class="app-header">
 
-        <a href="{{ route('logout') }}" class="header-icon" title="خروج">
-            <i class="fas fa-sign-out-alt"></i>
-        </a>
+        <form method="POST" action="{{ route('logout') }}" style="margin:0">
+            @csrf
+            <button type="submit" class="header-icon" title="خروج">
+                <i class="fas fa-sign-out-alt"></i>
+            </button>
+        </form>
 
         <h1>الخدمات الرئيسية</h1>
 

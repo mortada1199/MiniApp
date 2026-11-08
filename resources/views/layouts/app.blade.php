@@ -23,7 +23,8 @@
     @yield('scripts')
 
     <!-- كود الخروج التلقائي عند الخمول لمدة دقيقة -->
-    @auth
+    {{-- الدخول يتم عبر API خارجي وليس Laravel Auth، لذلك نعتمد على وجود التوكن في السيشن --}}
+    @if (session('token'))
         <script>
             document.addEventListener('DOMContentLoaded', function() {
                 let timeInactivityLimit = 60 * 1000; // دقيقة واحدة بالملي ثانية
@@ -52,7 +53,7 @@
                 }
 
                 // مراقبة كافة تحركات المستخدم (الماوس، الكيبورد، اللمس على الهواتف، التمرير)
-                window.onload = resetTimer;
+                resetTimer();
                 document.onmousemove = resetTimer;
                 document.onkeydown = resetTimer;
                 document.onkeyup = resetTimer;
@@ -62,7 +63,7 @@
                 document.addEventListener('touchstart', resetTimer); // مهم جداً لمستخدمي الهواتف
             });
         </script>
-    @endauth
+    @endif
 </body>
 
 </html>

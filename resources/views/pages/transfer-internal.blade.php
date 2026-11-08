@@ -9,6 +9,21 @@
         </div>
 
         <div class="page-content">
+            @if (session('error'))
+                <div class="alert alert-error" style="margin: 15px;">
+                    <i class="fas fa-exclamation-circle"></i>
+                    {{ session('error') }}
+                </div>
+            @endif
+
+            @if ($errors->any())
+                <div class="alert alert-error" style="margin: 15px;">
+                    @foreach ($errors->all() as $e)
+                        <div>{{ $e }}</div>
+                    @endforeach
+                </div>
+            @endif
+
             <div id="ajax-error" class="alert alert-error" style="display:none; margin: 15px; padding: 10px; background: #fee; color: #cc0000;"></div>
 
             <div class="info-card">

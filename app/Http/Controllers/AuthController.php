@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
 
 class AuthController extends Controller
@@ -23,28 +24,44 @@ class AuthController extends Controller
             'telegram_init_data' => 'required',
         ]);
 
-        $response = Http::post(
-            'https://hbcod-196-1-227-87.run.pinggy-free.link/tma/authenticate',
-            [
+        try {
+            $response = $this->tmaApi()->post('/authenticate', [
                 'username' => $request->username,
                 'pin' => $request->pin,
                 'telegram_init_data' => $request->telegram_init_data,
-            ]
-        );
+            ]);
+        } catch (ConnectionException $e) {
+            Log::error('TMA authenticate: connection failed', ['error' => $e->getMessage()]);
+
+            return back()
+                ->withInput($request->only('username'))
+                ->withErrors(['login' => 'تعذر الاتصال بخادم البنك، يرجى المحاولة لاحقاً']);
+        }
+
         if ($response->successful()) {
+            $request->session()->regenerate();
             $data = $response->json();
              Session::put('token', $data['token'] ?? null);
             Session::put('accounts', $data['accounts'] ?? []);
             return redirect()->route('dashboard');
         }
-        return back()->withErrors([
-            'login' => 'بيانات الدخول غير صحيحة',
-        ]);
+        if ($response->serverError()) {
+            Log::error('TMA authenticate: server error', ['status' => $response->status()]);
+
+            return back()
+                ->withInput($request->only('username'))
+                ->withErrors(['login' => 'خادم البنك غير متاح حالياً، يرجى المحاولة لاحقاً']);
+        }
+
+        return back()
+            ->withInput($request->only('username'))
+            ->withErrors(['login' => 'بيانات الدخول غير صحيحة']);
     }
 
-    public function logout()
+    public function logout(Request $request)
     {
-        Session::flush();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
         return redirect()
             ->route('login')
