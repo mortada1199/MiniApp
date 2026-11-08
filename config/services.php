@@ -28,6 +28,16 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+<<<<<<< HEAD
+=======
+    // API البنك الخارجي (Telegram Mini App backend)
+    'tma' => [
+        'url' => rtrim(env('TMA_API_URL', 'https://hbcod-196-1-227-87.run.pinggy-free.link/tma'), '/'),
+        'timeout' => (int) env('TMA_API_TIMEOUT', 15),
+        'connect_timeout' => (int) env('TMA_API_CONNECT_TIMEOUT', 5),
+    ],
+
+>>>>>>> master
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),

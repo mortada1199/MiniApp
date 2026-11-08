@@ -85,7 +85,18 @@
                 <div class="form-group">
                     <label for="amount">المبلغ</label>
                     <input type="number" id="amount" name="amount" class="form-control" placeholder="أدخل المبلغ"
+<<<<<<< HEAD
                         min="1" required>
+=======
+                        min="1" value="{{ old('amount') }}" required>
+                </div>
+
+                <!-- Note -->
+                <div class="form-group">
+                    <label for="note">ملاحظات (اختياري)</label>
+                    <input type="text" id="note" name="note" class="form-control" maxlength="100"
+                        placeholder="مثال: مصاريف شهرية" value="{{ old('note') }}">
+>>>>>>> master
                 </div>
 
                 <button type="submit" id="submitBtn" class="btn btn-primary">
