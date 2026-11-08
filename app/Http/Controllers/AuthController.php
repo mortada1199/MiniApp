@@ -4,14 +4,20 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
 
 class AuthController extends Controller
 {
-    public function showLogin()
+    /** اسم الكوكي الذي يحفظ رقم الحساب بعد أول دخول ناجح (مشفر تلقائياً من Laravel) */
+    private const REMEMBER_COOKIE = 'remembered_account';
+
+    public function showLogin(Request $request)
     {
-        return view('auth.login');
+        $rememberedAccount = $request->cookie(self::REMEMBER_COOKIE);
+
+        return view('auth.login', compact('rememberedAccount'));
     }
 
     public function login(Request $request)
@@ -40,6 +46,9 @@ class AuthController extends Controller
 
         if ($response->successful()) {
             $request->session()->regenerate();
+
+            // حفظ رقم الحساب لمدة سنة ليظهر تلقائياً في صفحة الدخول
+            Cookie::queue(Cookie::make(self::REMEMBER_COOKIE, $request->username, 60 * 24 * 365));
             $data = $response->json();
              Session::put('token', $data['token'] ?? null);
             Session::put('accounts', $data['accounts'] ?? []);

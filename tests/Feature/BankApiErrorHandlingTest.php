@@ -25,6 +25,30 @@ class BankApiErrorHandlingTest extends TestCase
             ->assertSessionHasErrors('login');
     }
 
+    public function test_successful_login_remembers_account_number(): void
+    {
+        Http::fake(['*/authenticate' => Http::response(['token' => 't', 'accounts' => []], 200)]);
+
+        $response = $this->post('/login', ['username' => '0777428', 'pin' => '1234', 'telegram_init_data' => 'x'])
+            ->assertRedirect('/dashboard')
+            ->assertCookie('remembered_account', '0777428');
+
+        $this->withCookie('remembered_account', '0777428')
+            ->get('/login')
+            ->assertOk()
+            ->assertSee('value="0777428"', false)
+            ->assertSee('ليس حسابك؟');
+    }
+
+    public function test_failed_login_does_not_remember_account_number(): void
+    {
+        Http::fake(['*/authenticate' => Http::response(['message' => 'bad'], 401)]);
+
+        $this->from('/login')
+            ->post('/login', ['username' => '0777428', 'pin' => '0000', 'telegram_init_data' => 'x'])
+            ->assertCookieMissing('remembered_account');
+    }
+
     public function test_internal_transfer_shows_error_when_bank_is_unreachable(): void
     {
         Http::fake(fn () => throw new ConnectionException('timed out'));
