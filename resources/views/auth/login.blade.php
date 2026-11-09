@@ -184,6 +184,8 @@
             border-radius: 50%;
             border: 2px solid rgba(45, 125, 70, .35);
             opacity: 0;
+            /* الحلقات للزينة فقط: لا تمنع الضغط على زر البصمة */
+            pointer-events: none;
         }
 
         .lg-bio-area.ready .lg-bio-wrap::before,
@@ -197,6 +199,7 @@
 
         .lg-bio {
             position: relative;
+            z-index: 1;
             width: 128px;
             height: 128px;
             border-radius: 50%;
@@ -569,7 +572,16 @@
                 }
 
                 bm = tg.BiometricManager;
+
+                // لو تيليجرام ما ردّ على التهيئة خلال 5 ثوانٍ لا نترك الصفحة معلّقة
+                const initTimer = setTimeout(function() {
+                    if (!bm.isInited) {
+                        setState('error', 'تعذر تشغيل البصمة', 'أغلق التطبيق وافتحه مرة أخرى من تيليجرام');
+                    }
+                }, 5000);
+
                 bm.init(function() {
+                    clearTimeout(initTimer);
                     if (!bm.isBiometricAvailable) {
                         setState('disabled', 'البصمة غير متاحة على هذا الجهاز',
                             'فعّل البصمة من إعدادات الهاتف ثم أعد فتح التطبيق');
