@@ -2,8 +2,6 @@
 @section('title', 'تسجيل الدخول')
 
 @php
-    // رقم الحساب: القيمة المدخلة سابقاً (عند خطأ) أو المحفوظة من آخر دخول ناجح
-    $accountValue = old('username', $rememberedAccount ?? '');
     $hasLogo = file_exists(public_path('images/logo.png'));
 @endphp
 
@@ -28,7 +26,6 @@
             overflow: hidden;
         }
 
-        /* نقش خفيف في الخلفية */
         .lg-hero::before {
             content: '';
             position: absolute;
@@ -65,11 +62,6 @@
             font-family: inherit;
             font-size: .85rem;
             cursor: pointer;
-            transition: background .2s;
-        }
-
-        .lg-icon-btn:active {
-            background: rgba(255, 255, 255, .18);
         }
 
         .lg-icon-btn i {
@@ -91,7 +83,6 @@
             max-width: 80%;
         }
 
-        /* شعار بديل (حلقة متدرجة) لحين إضافة public/images/logo.png */
         .lg-ring {
             width: 78px;
             height: 78px;
@@ -118,7 +109,7 @@
             opacity: .8;
         }
 
-        /* ===== البطاقة البيضاء ===== */
+        /* ===== البطاقة ===== */
         .lg-card {
             position: relative;
             flex: 1;
@@ -127,6 +118,8 @@
             border-radius: 28px 28px 0 0;
             padding: 30px 24px 24px;
             box-shadow: 0 -8px 24px rgba(0, 0, 0, .08);
+            display: flex;
+            flex-direction: column;
             animation: lg-rise .5s .1s ease both;
         }
 
@@ -138,7 +131,7 @@
         }
 
         .lg-welcome p {
-            margin: 0 0 22px;
+            margin: 0 0 18px;
             color: #8a8f98;
             font-size: .95rem;
         }
@@ -146,7 +139,7 @@
         .lg-alert {
             border-radius: 12px;
             padding: 12px 14px;
-            margin-bottom: 18px;
+            margin-bottom: 10px;
             font-size: .9rem;
             display: flex;
             gap: 8px;
@@ -164,155 +157,173 @@
             color: #1e5c31;
         }
 
-        .lg-field {
-            margin-bottom: 18px;
-        }
-
-        .lg-field-head {
+        /* ===== زر البصمة ===== */
+        .lg-bio-area {
+            flex: 1;
             display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            margin-bottom: 8px;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 16px 0 8px;
         }
 
-        .lg-field label {
-            font-weight: 700;
-            font-size: .95rem;
-            color: #111;
-        }
-
-        .lg-switch {
-            background: none;
-            border: 0;
-            padding: 0;
-            color: #2D7D46;
-            font-family: inherit;
-            font-size: .8rem;
-            cursor: pointer;
-            text-decoration: underline;
-        }
-
-        .lg-input {
+        .lg-bio-wrap {
             position: relative;
+            width: 170px;
+            height: 170px;
+            display: grid;
+            place-items: center;
         }
 
-        .lg-input input {
-            width: 100%;
-            height: 56px;
-            border: 1.5px solid #1f1f1f;
-            border-radius: 14px;
-            padding: 0 16px 0 52px;
-            font-family: inherit;
+        /* حلقات النبض */
+        .lg-bio-wrap::before,
+        .lg-bio-wrap::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            border: 2px solid rgba(45, 125, 70, .35);
+            opacity: 0;
+        }
+
+        .lg-bio-area.ready .lg-bio-wrap::before,
+        .lg-bio-area.ready .lg-bio-wrap::after {
+            animation: lg-pulse 2.4s ease-out infinite;
+        }
+
+        .lg-bio-area.ready .lg-bio-wrap::after {
+            animation-delay: 1.2s;
+        }
+
+        .lg-bio {
+            position: relative;
+            width: 128px;
+            height: 128px;
+            border-radius: 50%;
+            border: 0;
+            color: #fff;
+            font-size: 3.6rem;
+            cursor: pointer;
+            background: linear-gradient(145deg, #3a9956 0%, #1e5c31 100%);
+            box-shadow: 0 14px 30px rgba(30, 92, 49, .35), inset 0 2px 0 rgba(255, 255, 255, .15);
+            transition: transform .15s, background .3s, box-shadow .3s;
+            overflow: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .lg-bio:active {
+            transform: scale(.95);
+        }
+
+        .lg-bio:disabled {
+            cursor: default;
+        }
+
+        /* خط المسح أثناء التحقق */
+        .lg-bio::after {
+            content: '';
+            position: absolute;
+            left: 15%;
+            right: 15%;
+            height: 3px;
+            top: 20%;
+            border-radius: 3px;
+            background: #f2b705;
+            box-shadow: 0 0 12px #f2b705;
+            opacity: 0;
+        }
+
+        .lg-bio-area.scanning .lg-bio::after {
+            opacity: 1;
+            animation: lg-scan 1.2s ease-in-out infinite alternate;
+        }
+
+        .lg-bio-area.success .lg-bio {
+            background: linear-gradient(145deg, #4aad62 0%, #2D7D46 100%);
+        }
+
+        .lg-bio-area.error .lg-bio {
+            background: linear-gradient(145deg, #d9534f 0%, #a52a26 100%);
+            box-shadow: 0 14px 30px rgba(165, 42, 38, .3);
+            animation: lg-shake .4s ease;
+        }
+
+        .lg-bio-area.disabled .lg-bio {
+            background: linear-gradient(145deg, #a3a3a3 0%, #6b6b6b 100%);
+            box-shadow: none;
+        }
+
+        .lg-status {
+            margin-top: 22px;
+            text-align: center;
+            min-height: 48px;
+        }
+
+        .lg-status strong {
+            display: block;
             font-size: 1.05rem;
             color: #111;
-            background: #fff;
-            outline: none;
-            transition: border-color .2s, box-shadow .2s;
-            box-sizing: border-box;
         }
 
-        .lg-input input:focus {
-            border-color: #2D7D46;
-            box-shadow: 0 0 0 4px rgba(45, 125, 70, .15);
+        .lg-status span {
+            display: block;
+            font-size: .88rem;
+            color: #8a8f98;
+            margin-top: 4px;
         }
 
-        .lg-input input.is-remembered {
-            background: #f6faf7;
-            letter-spacing: 1px;
+        .lg-bio-area.error .lg-status strong {
+            color: #b42318;
         }
 
-        .lg-input .lg-addon {
-            position: absolute;
-            left: 6px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 44px;
-            height: 44px;
-            border: 0;
+        .lg-bio-area.success .lg-status strong {
+            color: #1e5c31;
+        }
+
+        .lg-secondary {
+            margin-top: 14px;
             background: none;
-            color: #333;
-            font-size: 1.15rem;
-            cursor: pointer;
-            border-radius: 10px;
-        }
-
-        .lg-input .lg-addon.static {
-            cursor: default;
+            border: 1.5px solid #2D7D46;
             color: #2D7D46;
-        }
-
-        .lg-forgot {
-            display: inline-block;
-            margin: -4px 0 22px;
-            color: #2D7D46;
-            font-size: .9rem;
-            text-decoration: underline;
-            text-underline-offset: 4px;
-        }
-
-        .lg-actions {
-            display: flex;
-            gap: 14px;
-            align-items: center;
-        }
-
-        .lg-submit {
-            flex: 1;
-            height: 58px;
-            border: 0;
-            border-radius: 30px;
-            background: #5f5f5f;
-            color: #fff;
+            border-radius: 24px;
+            padding: 8px 20px;
             font-family: inherit;
-            font-size: 1.1rem;
+            font-size: .9rem;
             font-weight: 700;
             cursor: pointer;
-            transition: background .25s, transform .1s, box-shadow .25s;
         }
 
-        .lg-submit.ready {
-            background: linear-gradient(135deg, #3a9956 0%, #1e5c31 100%);
-            box-shadow: 0 8px 20px rgba(45, 125, 70, .35);
+        .lg-secure {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            color: #6b7280;
+            font-size: .8rem;
+            margin-top: 18px;
         }
 
-        .lg-submit:active {
-            transform: scale(.98);
-        }
-
-        .lg-submit:disabled {
-            opacity: .85;
-            cursor: not-allowed;
+        .lg-secure i {
+            color: #2D7D46;
         }
 
         .lg-links {
             text-align: center;
-            margin-top: 28px;
-            display: flex;
-            flex-direction: column;
-            gap: 18px;
+            margin-top: 18px;
         }
 
         .lg-links a {
-            color: #2a5a2f;
-            font-weight: 700;
-            text-decoration: underline;
-            text-underline-offset: 5px;
-        }
-
-        .lg-links .muted {
             color: #9ca3af;
-            font-weight: 400;
             text-decoration: none;
         }
 
         .lg-version {
             text-align: center;
-            margin-top: 18px;
+            margin-top: 12px;
             font-size: .85rem;
             color: #222;
         }
 
-        /* تنبيه صغير أسفل الشاشة */
         .lg-toast {
             position: fixed;
             left: 50%;
@@ -344,6 +355,16 @@
         @keyframes lg-shake {
             20%, 60% { transform: translateX(-6px); }
             40%, 80% { transform: translateX(6px); }
+        }
+
+        @keyframes lg-pulse {
+            0% { transform: scale(.75); opacity: .9; }
+            100% { transform: scale(1.25); opacity: 0; }
+        }
+
+        @keyframes lg-scan {
+            from { top: 20%; }
+            to { top: 78%; }
         }
     </style>
 
@@ -377,7 +398,7 @@
         <main class="lg-card">
             <div class="lg-welcome">
                 <h2 id="greeting">مرحباً</h2>
-                <p>قم بتسجيل الدخول إلى حسابك</p>
+                <p>سجّل الدخول إلى حسابك ببصمتك</p>
             </div>
 
             @if (session('success'))
@@ -398,56 +419,37 @@
                 </div>
             @endif
 
-            <form method="POST" action="{{ route('login.submit') }}" id="loginForm" novalidate>
+            {{-- نموذج مخفي: يُرسل تلقائياً بعد نجاح التحقق من البصمة --}}
+            <form method="POST" action="{{ route('login.submit') }}" id="loginForm">
                 @csrf
                 <input type="hidden" name="telegram_init_data" id="telegram_init_data">
-
-                <div class="lg-field">
-                    <div class="lg-field-head">
-                        <label for="username">رقم الحساب</label>
-                        @if ($rememberedAccount)
-                            <button type="button" class="lg-switch" id="switchAccount">ليس حسابك؟</button>
-                        @endif
-                    </div>
-                    <div class="lg-input">
-                        <input type="text" id="username" name="username" inputmode="numeric" autocomplete="username"
-                            value="{{ $accountValue }}" placeholder="أدخل رقم الحساب"
-                            class="{{ $rememberedAccount && $accountValue === $rememberedAccount ? 'is-remembered' : '' }}"
-                            required>
-                        <span class="lg-addon static"><i class="far fa-user"></i></span>
-                    </div>
-                </div>
-
-                <div class="lg-field">
-                    <div class="lg-field-head">
-                        <label for="pin">كلمة المرور</label>
-                    </div>
-                    <div class="lg-input">
-                        <input type="password" id="pin" name="pin" autocomplete="current-password"
-                            placeholder="أدخل كلمة المرور" required>
-                        <button type="button" class="lg-addon" id="togglePin" aria-label="إظهار كلمة المرور">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <a href="#" class="lg-forgot" data-toast="لاستعادة كلمة المرور يرجى التواصل مع أقرب فرع">
-                    هل نسيت كلمة المرور؟
-                </a>
-
-                <div class="lg-actions">
-                    <button type="submit" class="lg-submit" id="submitBtn">
-                        <span id="btnText">تسجيل الدخول</span>
-                        <span id="btnSpinner" style="display:none">
-                            <i class="fas fa-spinner fa-spin"></i> جاري التحقق...
-                        </span>
-                    </button>
-                </div>
             </form>
 
-            <nav class="lg-links">
-                <a href="#" class="muted" data-toast="للمساعدة تواصل مع خدمة العملاء">مساعدة</a>
-            </nav>
+            <section class="lg-bio-area disabled" id="bioArea">
+                <div class="lg-bio-wrap">
+                    <button type="button" class="lg-bio" id="bioBtn" aria-label="الدخول بالبصمة" disabled>
+                        <i class="fas fa-fingerprint" id="bioIcon"></i>
+                    </button>
+                </div>
+
+                <div class="lg-status" role="status" aria-live="polite">
+                    <strong id="statusTitle">جاري التحضير...</strong>
+                    <span id="statusHint"></span>
+                </div>
+
+                <button type="button" class="lg-secondary" id="settingsBtn" style="display:none">
+                    <i class="fas fa-cog"></i> فتح إعدادات البصمة
+                </button>
+            </section>
+
+            <div class="lg-secure">
+                <i class="fas fa-shield-alt"></i>
+                بصمتك لا تغادر جهازك ولا يتم حفظها لدينا
+            </div>
+
+            <div class="lg-links">
+                <a href="#" data-toast="للمساعدة تواصل مع خدمة العملاء">مساعدة</a>
+            </div>
 
             <div class="lg-version">الإصدار {{ config('app.version', '1.0') }}</div>
         </main>
@@ -457,89 +459,151 @@
 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const form = document.getElementById('loginForm');
-            const account = document.getElementById('username');
-            const pin = document.getElementById('pin');
-            const submitBtn = document.getElementById('submitBtn');
+        (function() {
+            const hasServerError = @json($errors->any());
 
-            // ===== تليجرام =====
-            if (window.Telegram && Telegram.WebApp) {
-                const tg = Telegram.WebApp;
+            const area = document.getElementById('bioArea');
+            const btn = document.getElementById('bioBtn');
+            const icon = document.getElementById('bioIcon');
+            const title = document.getElementById('statusTitle');
+            const hint = document.getElementById('statusHint');
+            const settingsBtn = document.getElementById('settingsBtn');
+            const form = document.getElementById('loginForm');
+
+            let tg = null;
+            let bm = null;
+            let bioName = 'البصمة';
+            let busy = false;
+
+            // ===== عرض الحالة =====
+            function setState(state, titleText, hintText) {
+                area.className = 'lg-bio-area ' + state;
+                title.textContent = titleText;
+                hint.textContent = hintText || '';
+                btn.disabled = state === 'disabled' || state === 'scanning' || state === 'success';
+                settingsBtn.style.display = 'none';
+                icon.className = state === 'success' ? 'fas fa-check' : 'fas fa-fingerprint';
+            }
+
+            function haptic(type) {
+                try {
+                    tg && tg.HapticFeedback && tg.HapticFeedback.notificationOccurred(type);
+                } catch (e) {}
+            }
+
+            function showReady() {
+                setState('ready', 'اضغط على البصمة لتسجيل الدخول', 'سنطلب منك تأكيد ' + bioName + ' المسجلة في جهازك');
+            }
+
+            // ===== إرسال بيانات تيليجرام للـ API بعد نجاح البصمة =====
+            function submitLogin() {
+                setState('success', 'تم التحقق بنجاح', 'جاري تسجيل الدخول...');
+                haptic('success');
+                document.getElementById('telegram_init_data').value = tg.initData;
+                form.submit();
+            }
+
+            // ===== طلب البصمة =====
+            function authenticate() {
+                if (busy) return;
+                busy = true;
+                setState('scanning', 'ضع إصبعك على المستشعر', 'في انتظار تأكيد ' + bioName + '...');
+
+                bm.authenticate({ reason: 'تأكيد هويتك لتسجيل الدخول' }, function(ok) {
+                    busy = false;
+                    if (ok) {
+                        submitLogin();
+                    } else {
+                        haptic('error');
+                        setState('error', 'لم يتم التحقق من ' + bioName, 'اضغط على البصمة للمحاولة مرة أخرى');
+                    }
+                });
+            }
+
+            function showDenied() {
+                setState('error', 'صلاحية ' + bioName + ' مرفوضة',
+                    'اسمح لتيليجرام باستخدام ' + bioName + ' من الإعدادات ثم حاول مرة أخرى');
+                settingsBtn.style.display = 'inline-block';
+            }
+
+            function start() {
+                if (!bm.isAccessGranted) {
+                    if (bm.isAccessRequested) {
+                        showDenied();
+                        return;
+                    }
+                    bm.requestAccess({ reason: 'لتسجيل الدخول إلى حسابك بأمان باستخدام بصمتك' }, function(granted) {
+                        granted ? authenticate() : showDenied();
+                    });
+                    return;
+                }
+                authenticate();
+            }
+
+            btn.addEventListener('click', start);
+            settingsBtn.addEventListener('click', function() {
+                bm && bm.openSettings();
+            });
+
+            // ===== التهيئة =====
+            function boot() {
+                tg = window.Telegram && window.Telegram.WebApp;
+
+                if (!tg || !tg.initData) {
+                    setState('disabled', 'افتح التطبيق من داخل تيليجرام', 'تسجيل الدخول بالبصمة متاح فقط عبر تطبيق تيليجرام');
+                    return;
+                }
+
                 tg.ready();
                 tg.expand();
-                document.getElementById('telegram_init_data').value = tg.initData;
                 try {
                     tg.setHeaderColor('#1b2620');
                 } catch (e) {}
 
                 const name = tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.first_name;
                 if (name) document.getElementById('greeting').textContent = 'مرحباً، ' + name;
-            }
 
-            // ===== تفعيل الزر عند تعبئة الحقول =====
-            function refreshButton() {
-                submitBtn.classList.toggle('ready', account.value.trim() !== '' && pin.value.trim() !== '');
-            }
-            account.addEventListener('input', function() {
-                account.classList.remove('is-remembered');
-                refreshButton();
-            });
-            pin.addEventListener('input', refreshButton);
-            refreshButton();
+                if (!tg.isVersionAtLeast || !tg.isVersionAtLeast('7.2') || !tg.BiometricManager) {
+                    setState('disabled', 'يرجى تحديث تيليجرام', 'الدخول بالبصمة يتطلب آخر إصدار من تطبيق تيليجرام');
+                    return;
+                }
 
-            // لو رقم الحساب محفوظ ننقل التركيز مباشرة لكلمة المرور
-            (account.value ? pin : account).focus();
+                bm = tg.BiometricManager;
+                bm.init(function() {
+                    if (!bm.isBiometricAvailable) {
+                        setState('disabled', 'البصمة غير متاحة على هذا الجهاز',
+                            'فعّل البصمة من إعدادات الهاتف ثم أعد فتح التطبيق');
+                        return;
+                    }
 
-            // ===== إظهار/إخفاء كلمة المرور =====
-            document.getElementById('togglePin').addEventListener('click', function() {
-                const show = pin.type === 'password';
-                pin.type = show ? 'text' : 'password';
-                this.innerHTML = show ? '<i class="fas fa-eye-slash"></i>' : '<i class="fas fa-eye"></i>';
-                pin.focus();
-            });
+                    if (bm.biometricType === 'face') bioName = 'بصمة الوجه';
+                    showReady();
 
-            // ===== تغيير الحساب المحفوظ =====
-            const switchBtn = document.getElementById('switchAccount');
-            if (switchBtn) {
-                switchBtn.addEventListener('click', function() {
-                    account.value = '';
-                    account.classList.remove('is-remembered');
-                    switchBtn.remove();
-                    account.focus();
-                    refreshButton();
+                    // طلب البصمة تلقائياً عند الفتح إذا كانت الصلاحية ممنوحة مسبقاً ولا يوجد خطأ معروض
+                    if (bm.isAccessGranted && !hasServerError) authenticate();
                 });
             }
 
             // ===== التنبيهات =====
             const toast = document.getElementById('toast');
             let toastTimer;
-
-            function showToast(msg) {
-                toast.textContent = msg;
-                toast.classList.add('show');
-                clearTimeout(toastTimer);
-                toastTimer = setTimeout(() => toast.classList.remove('show'), 2600);
-            }
             document.querySelectorAll('[data-toast]').forEach(function(el) {
                 el.addEventListener('click', function(e) {
                     e.preventDefault();
-                    showToast(el.dataset.toast);
+                    toast.textContent = el.dataset.toast;
+                    toast.classList.add('show');
+                    clearTimeout(toastTimer);
+                    toastTimer = setTimeout(() => toast.classList.remove('show'), 2600);
                 });
             });
 
-            // ===== الإرسال =====
-            form.addEventListener('submit', function(e) {
-                if (!account.value.trim() || !pin.value.trim()) {
-                    e.preventDefault();
-                    showToast('يرجى إدخال رقم الحساب وكلمة المرور');
-                    (account.value.trim() ? pin : account).focus();
-                    return;
-                }
-                submitBtn.disabled = true;
-                document.getElementById('btnText').style.display = 'none';
-                document.getElementById('btnSpinner').style.display = 'inline-block';
+            // عند الرجوع للصفحة من سجل المتصفح نعيد الحالة الجاهزة
+            window.addEventListener('pageshow', function(e) {
+                if (e.persisted && bm && bm.isBiometricAvailable) showReady();
             });
-        });
+
+            window.lgBoot = boot; // يساعد في الاختبار من أدوات المطور
+            document.addEventListener('DOMContentLoaded', boot);
+        })();
     </script>
 @endsection

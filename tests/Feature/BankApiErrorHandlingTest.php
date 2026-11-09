@@ -20,33 +20,52 @@ class BankApiErrorHandlingTest extends TestCase
         Http::fake(fn () => throw new ConnectionException('timed out'));
 
         $this->from('/login')
-            ->post('/login', ['username' => 'u', 'pin' => '1234', 'telegram_init_data' => 'x'])
+            ->post('/login', ['telegram_init_data' => 'x'])
             ->assertRedirect('/login')
             ->assertSessionHasErrors('login');
     }
 
-    public function test_successful_login_remembers_account_number(): void
+    public function test_biometric_login_sends_only_telegram_init_data(): void
     {
-        Http::fake(['*/authenticate' => Http::response(['token' => 't', 'accounts' => []], 200)]);
+        Http::fake(['*/authenticate' => Http::response(['token' => 't', 'accounts' => [['accountNo' => '1']]], 200)]);
 
-        $response = $this->post('/login', ['username' => '0777428', 'pin' => '1234', 'telegram_init_data' => 'x'])
+        $this->post('/login', ['telegram_init_data' => 'query_id=abc&hash=xyz'])
             ->assertRedirect('/dashboard')
-            ->assertCookie('remembered_account', '0777428');
+            ->assertSessionHas('token', 't');
 
-        $this->withCookie('remembered_account', '0777428')
-            ->get('/login')
-            ->assertOk()
-            ->assertSee('value="0777428"', false)
-            ->assertSee('ليس حسابك؟');
+        Http::assertSent(fn ($r) => str_ends_with($r->url(), '/authenticate')
+            && $r->data() === ['telegram_init_data' => 'query_id=abc&hash=xyz']);
     }
 
-    public function test_failed_login_does_not_remember_account_number(): void
+    public function test_login_without_telegram_data_is_rejected(): void
     {
-        Http::fake(['*/authenticate' => Http::response(['message' => 'bad'], 401)]);
+        Http::fake();
 
         $this->from('/login')
-            ->post('/login', ['username' => '0777428', 'pin' => '0000', 'telegram_init_data' => 'x'])
-            ->assertCookieMissing('remembered_account');
+            ->post('/login', [])
+            ->assertRedirect('/login')
+            ->assertSessionHasErrors('telegram_init_data');
+
+        Http::assertNothingSent();
+    }
+
+    public function test_unknown_telegram_user_shows_api_message(): void
+    {
+        Http::fake(['*/authenticate' => Http::response(['message' => 'الحساب غير مربوط'], 401)]);
+
+        $this->from('/login')
+            ->post('/login', ['telegram_init_data' => 'x'])
+            ->assertRedirect('/login')
+            ->assertSessionHasErrors(['login' => 'الحساب غير مربوط']);
+    }
+
+    public function test_login_page_shows_biometric_button(): void
+    {
+        $this->get('/login')
+            ->assertOk()
+            ->assertSee('id="bioBtn"', false)
+            ->assertDontSee('name="pin"', false)
+            ->assertDontSee('name="username"', false);
     }
 
     public function test_internal_transfer_shows_error_when_bank_is_unreachable(): void
