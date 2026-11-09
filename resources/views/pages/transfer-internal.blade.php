@@ -5,28 +5,33 @@
     <div class="page-container">
         <div class="page-header">
             <a href="{{ route('dashboard') }}" class="back-btn"><i class="fas fa-arrow-right"></i></a>
-            <h2>التحويل الي عميل داخل البنك</h2>
+            <h2>التحويل الى عميل داخل البنك</h2>
+            <div class="header-spacer"></div>
         </div>
 
         <div class="page-content">
             @if (session('error'))
-                <div class="alert alert-error" style="margin: 15px;">
+                <div class="alert alert-error">
                     <i class="fas fa-exclamation-circle"></i>
                     {{ session('error') }}
                 </div>
             @endif
 
             @if ($errors->any())
-                <div class="alert alert-error" style="margin: 15px;">
-                    @foreach ($errors->all() as $e)
-                        <div>{{ $e }}</div>
-                    @endforeach
+                <div class="alert alert-error">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <div>
+                        @foreach ($errors->all() as $e)
+                            <div>{{ $e }}</div>
+                        @endforeach
+                    </div>
                 </div>
             @endif
 
-            <div id="ajax-error" class="alert alert-error" style="display:none; margin: 15px; padding: 10px; background: #fee; color: #cc0000;"></div>
+            <div id="ajax-error" class="alert alert-error" style="display:none;"></div>
 
             <div class="info-card">
+                <h3><i class="fas fa-user-friends"></i> بيانات التحويل</h3>
                 <form method="POST" action="{{ route('transfer-internal.submit') }}" id="transfer-form">
                     @csrf
                     <!-- اختيار الحساب المرسل -->
@@ -52,9 +57,11 @@
                         <input type="text" id="bban" name="bban" class="form-control" placeholder="أدخل رقم الحساب" required>
                     </div>
 
-                    <button type="button" id="verify-btn" class="btn btn-dark-custom">التحقق</button>
+                    <button type="button" id="verify-btn" class="btn btn-dark-custom">
+                        <i class="fas fa-search"></i> التحقق
+                    </button>
 
-                    <div class="form-group" style="margin-top: 15px;">
+                    <div class="form-group" style="margin-top: 16px;">
                         <label for="customer_name">اسم العميل</label>
                         <input type="text" id="customer_name" name="customer_name" class="form-control" readonly>
                     </div>
@@ -70,7 +77,9 @@
                             <label for="amount">المبلغ</label>
                             <input type="number" id="amount" name="amount" class="form-control" placeholder="أدخل المبلغ" min="1" required>
                         </div>
-                        <button type="submit" class="btn btn-dark-custom">تحويل</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane"></i> تحويل
+                        </button>
                     </div>
                 </form>
             </div>
@@ -86,7 +95,7 @@
         function updateBalance() {
             let selectedOption = $('#from_account option:selected');
             let balance = selectedOption.data('balance');
-            let formattedBalance = parseFloat(balance).toLocaleString(undefined, {minimumFractionDigits: 2});
+            let formattedBalance = (parseFloat(String(balance).replace(/,/g, '')) || 0).toLocaleString(undefined, {minimumFractionDigits: 2});
             $('#available-balance').text(formattedBalance + ' SDG');
         }
 
@@ -122,11 +131,11 @@
                     } else {
                         $('#ajax-error').text("العميل غير موجود").show();
                     }
-                    btn.prop('disabled', false).text('التحقق');
+                    btn.prop('disabled', false).html('<i class="fas fa-search"></i> التحقق');
                 },
                 error: function() {
                     $('#ajax-error').text("خطأ في الاتصال بالسيرفر").show();
-                    btn.prop('disabled', false).text('التحقق');
+                    btn.prop('disabled', false).html('<i class="fas fa-search"></i> التحقق');
                 }
             });
         });

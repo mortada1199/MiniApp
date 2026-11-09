@@ -41,6 +41,7 @@ class AuthController extends Controller
             $data = $response->json();
             Session::put('token', $data['token'] ?? null);
             Session::put('accounts', $data['accounts'] ?? []);
+            Session::put('login_at', now()->toIso8601String());
 
             return redirect()->route('dashboard');
         }

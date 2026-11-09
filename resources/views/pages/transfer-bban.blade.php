@@ -5,10 +5,10 @@
 <div class="page-header">
     <a href="{{ route('dashboard') }}" class="back-btn"><i class="fas fa-arrow-right"></i></a>
     <h2>تحويل BBAN</h2>
-    <div style="width:36px"></div>
+    <div class="header-spacer"></div>
 </div>
 
-<div class="page-content fade-in">
+<div class="page-content">
     @if(session('success'))
         <div class="alert alert-success"><i class="fas fa-check-circle"></i> {{ session('success') }}</div>
     @endif
@@ -33,22 +33,22 @@
                 <input type="text" id="bban" name="bban" class="form-control" placeholder="أدخل رقم BBAN" required>
             </div>
 
-            <button type="button" id="verify-btn" class="btn btn-secondary" style="width: 100%; margin-bottom: 15px; background: #4a4a4a; color: white;">التحقق</button>
+            <button type="button" id="verify-btn" class="btn btn-secondary"><i class="fas fa-search"></i> التحقق</button>
 
             <div id="receiver-info" style="display: none;">
                 <div class="form-group">
                     <label>اسم العميل</label>
-                    <input type="text" id="customer_name" class="form-control" style="background: #e9ecef;" readonly>
+                    <input type="text" id="customer_name" class="form-control" readonly>
                 </div>
 
                 <div class="form-group">
                     <label>بنك المستفيد</label>
-                    <input type="text" id="bank_name" class="form-control" style="background: #e9ecef;" readonly>
+                    <input type="text" id="bank_name" class="form-control" readonly>
                 </div>
 
                 <div class="form-group">
                     <label>الحد الأدنى - الأعلى للمبلغ</label>
-                    <input type="text" id="transfer_limits" class="form-control" style="background: #e9ecef;" readonly>
+                    <input type="text" id="transfer_limits" class="form-control" readonly>
                 </div>
 
                 <div class="form-group">
@@ -66,7 +66,7 @@
                     <input type="number" id="amount" name="amount" class="form-control" placeholder="أدخل المبلغ" min="1">
                 </div>
 
-                <button type="submit" class="btn btn-primary" style="background: linear-gradient(to right, #5c8e58, #94b476); border: none;">
+                <button type="submit" class="btn btn-primary">
                     <i class="fas fa-paper-plane"></i> تحويل
                 </button>
             </div>
@@ -108,12 +108,12 @@ $(document).ready(function() {
                     btn.hide(); // إخفاء زر التحقق بعد النجاح
                 } else {
                     $('#ajax-error').text("رقم البيبان غير صحيح").show();
-                    btn.prop('disabled', false).text('التحقق');
+                    btn.prop('disabled', false).html('<i class="fas fa-search"></i> التحقق');
                 }
             },
             error: function() {
                 $('#ajax-error').text("حدث خطأ في الاتصال بالسيرفر").show();
-                btn.prop('disabled', false).text('التحقق');
+                btn.prop('disabled', false).html('<i class="fas fa-search"></i> التحقق');
             }
         });
     });

@@ -3,31 +3,38 @@
 
 @section('content')
     <div class="page-header">
-        <a href="{{ route('dashboard') }}" class="back-btn"><i class="fas fa-arrow-right"></i></a>
+        <a href="{{ route('dashboard') }}" class="back-btn" aria-label="رجوع"><i class="fas fa-arrow-right"></i></a>
         <h2>حساباتي</h2>
-        <div style="width:36px"></div>
+        <div class="header-spacer"></div>
     </div>
 
-    <div class="page-content fade-in">
-        @foreach (session('accounts') as $account)
+    <div class="page-content">
+        @forelse (session('accounts', []) as $account)
             <div class="info-card">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                    <span class="badge badge-success"> {{ $account['accountStatus'] }}</span>
-                    <span class="badge badge-info">{{ $account['availBal'] }}</span>
+                <div class="account-row">
+                    <div class="acc-icon"><i class="fas fa-wallet"></i></div>
+                    <div class="acc-main">
+                        <div class="acc-no">{{ $account['accountNo'] ?? '' }}</div>
+                        <div class="acc-type">{{ $account['ledModelDesc'] ?? '' }}</div>
+                    </div>
                 </div>
-                <div style="display:flex; align-items:center; gap:12px;">
-                    <div
-                        style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#2D7D46,#1e5c31);display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;flex-shrink:0;">
-                        <i class="fas fa-wallet"></i>
-                    </div>
+
+                <div class="account-row-footer">
                     <div>
-                        <div style="font-size:14px;font-weight:700;color:var(--text);direction:ltr;text-align:right;">
-                            {{ $account['accountNo'] }}</div>
-                        <div style="font-size:12px;color:var(--text-secondary);"> {{ $account['ledModelDesc'] }}
-                        </div>
+                        <div class="bal-label">الرصيد المتوفر</div>
+                        <div class="bal-value">{{ $account['availBal'] ?? '0.00' }} SDG</div>
                     </div>
+                    <span class="badge badge-success">
+                        <span class="status-dot status-active"></span>
+                        {{ $account['accountStatus'] ?? '' }}
+                    </span>
                 </div>
             </div>
-        @endforeach
+        @empty
+            <div class="empty-state">
+                <div class="icon"><i class="fas fa-wallet"></i></div>
+                <p>لا توجد حسابات لعرضها</p>
+            </div>
+        @endforelse
     </div>
 @endsection

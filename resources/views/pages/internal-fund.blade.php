@@ -21,10 +21,10 @@
             <i class="fas fa-arrow-right"></i>
         </a>
         <h2>تحويل داخلي</h2>
-        <div style="width:36px"></div>
+        <div class="header-spacer"></div>
     </div>
 
-    <div class="page-content fade-in">
+    <div class="page-content">
 
         @if (session('success'))
             <div class="alert alert-success">

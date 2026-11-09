@@ -5,10 +5,10 @@
 <div class="page-header">
     <a href="{{ route('dashboard') }}" class="back-btn"><i class="fas fa-arrow-right"></i></a>
     <h2>كشف الحساب</h2>
-    <div style="width:36px"></div>
+    <div class="header-spacer"></div>
 </div>
 
-<div class="page-content fade-in">
+<div class="page-content">
     <div class="info-card" style="padding:0; overflow:hidden;">
         <div style="overflow-x:auto;">
             <table class="data-table">
