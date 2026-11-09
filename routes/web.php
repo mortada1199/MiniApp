@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BankingController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Middleware\CheckAuthenticated;
 use Illuminate\Support\Facades\Route;
 
 // Public routes
@@ -12,19 +13,18 @@ Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 
-// Protected routes
-// Route::middleware(\App\Http\Middleware\CheckAuthenticated::class)->group(function () {
- 
-Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-Route::get('/accounts', [BankingController::class, 'accList'])->name('accounts');//اظهار الحسابات 
-Route::get('/internal-fund', [BankingController::class, 'intFund'])->name('internal-fund'); // تحويل داخلي
-Route::post('/internal-fund', [BankingController::class, 'submitIntFund'])->name('internal-fund.submit');
-Route::get('/transfer-bban', [BankingController::class, 'tranToBBAN'])->name('transfer-bban');
-Route::post('/transfer-bban/verify', [BankingController::class, 'verifyBban'])->name('transfer-bban.verify');
-Route::get('/transfer-internal', [BankingController::class, 'transferInternal'])->name('transfer-internal'); // تحويل الى عميل داخل البنك
-Route::post('/transfer-internal', [BankingController::class, 'submitTransferInternal'])->name('transfer-internal.submit');
-Route::get('/bank-api/customer/name/{customerNum}', [BankingController::class, 'verifyCustomerProxy']);
-
+// Protected routes: تتطلب تسجيل الدخول (توكن البنك في السيشن)
+Route::middleware(CheckAuthenticated::class)->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/accounts', [BankingController::class, 'accList'])->name('accounts'); // اظهار الحسابات
+    Route::get('/internal-fund', [BankingController::class, 'intFund'])->name('internal-fund'); // تحويل داخلي
+    Route::post('/internal-fund', [BankingController::class, 'submitIntFund'])->name('internal-fund.submit');
+    Route::get('/transfer-bban', [BankingController::class, 'tranToBBAN'])->name('transfer-bban');
+    Route::post('/transfer-bban/verify', [BankingController::class, 'verifyBban'])->name('transfer-bban.verify');
+    Route::get('/transfer-internal', [BankingController::class, 'transferInternal'])->name('transfer-internal'); // تحويل الى عميل داخل البنك
+    Route::post('/transfer-internal', [BankingController::class, 'submitTransferInternal'])->name('transfer-internal.submit');
+    Route::get('/bank-api/customer/name/{customerNum}', [BankingController::class, 'verifyCustomerProxy']);
+});
 
 
 
@@ -44,5 +44,3 @@ Route::get('/bank-api/customer/name/{customerNum}', [BankingController::class, '
 // Route::post('/internal-fund', [BankingController::class, 'submitIntFund'])->name('internal-fund.submit');
 // Route::get('/payment', [BankingController::class, 'payment'])->name('payment');
 // Route::post('/payment', [BankingController::class, 'submitPayment'])->name('payment.submit');
-
-// });
