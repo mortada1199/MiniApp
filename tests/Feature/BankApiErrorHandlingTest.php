@@ -97,7 +97,7 @@ class BankApiErrorHandlingTest extends TestCase
 
         $this->withSession(['token' => 't'])
             ->from('/transfer-internal')
-            ->post('/transfer-internal', ['from_account' => 'A', 'bban' => 'B', 'amount' => 10])
+            ->post('/transfer-internal', ['from_account' => 'A', 'to_account' => 'B', 'amount' => 10])
             ->assertRedirect('/transfer-internal')
             ->assertSessionHas('error');
     }
