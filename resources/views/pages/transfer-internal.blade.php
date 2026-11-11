@@ -133,8 +133,15 @@
                     }
                     btn.prop('disabled', false).html('<i class="fas fa-search"></i> التحقق');
                 },
-                error: function() {
-                    $('#ajax-error').text("خطأ في الاتصال بالسيرفر").show();
+                error: function(xhr) {
+                    // أظهر سبب الخطأ الحقيقي من السيرفر (رمز الحالة + الرسالة) لتسهيل المعرفة
+                    let msg = 'خطأ في الاتصال بالسيرفر';
+                    if (xhr.responseJSON) {
+                        msg = xhr.responseJSON.message || xhr.responseJSON.debug_error || msg;
+                    } else if (xhr.responseText) {
+                        msg = xhr.responseText.substring(0, 200);
+                    }
+                    $('#ajax-error').text(msg + ' (كود ' + xhr.status + ')').show();
                     btn.prop('disabled', false).html('<i class="fas fa-search"></i> التحقق');
                 }
             });

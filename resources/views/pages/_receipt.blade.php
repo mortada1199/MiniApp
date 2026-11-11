@@ -43,18 +43,37 @@
 
 <script>
     document.getElementById('shareBtn').addEventListener('click', async function() {
+        const btn = this;
         const rows = [...document.querySelectorAll('#receipt .receipt-row')]
             .map(r => r.querySelector('.k').textContent.trim() + ': ' + r.querySelector('.v').textContent.trim());
         const text = 'إشعار تحويل - بنك ام درمان الوطني\n' +
             'المبلغ: ' + document.querySelector('.receipt-amount').textContent.trim() + '\n' + rows.join('\n');
 
+        const tg = window.Telegram && window.Telegram.WebApp;
+
+        // 1) داخل تيليجرام: افتح نافذة المشاركة الأصلية لاختيار محادثة
+        if (tg && typeof tg.openTelegramLink === 'function') {
+            const shareUrl = 'https://t.me/share/url?url=' +
+                encodeURIComponent(window.location.origin) +
+                '&text=' + encodeURIComponent(text);
+            tg.openTelegramLink(shareUrl);
+            return;
+        }
+
+        // 2) متصفح يدعم المشاركة الأصلية (https على الجوال)
         try {
             if (navigator.share) {
                 await navigator.share({ title: 'إشعار تحويل', text: text });
-            } else {
-                await navigator.clipboard.writeText(text);
-                this.innerHTML = '<i class="fas fa-check"></i> تم النسخ';
+                return;
             }
+        } catch (e) {
+            if (e && e.name === 'AbortError') return; // المستخدم ألغى المشاركة
+        }
+
+        // 3) تعذّرت المشاركة: انسخ النص كحل أخير
+        try {
+            await navigator.clipboard.writeText(text);
+            btn.innerHTML = '<i class="fas fa-check"></i> تم النسخ';
         } catch (e) {}
     });
 </script>

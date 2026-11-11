@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="description" content="بنك ام درمان الوطني">
     <title>@yield('title', 'الخدمات المصرفية')</title>
+    <!-- Telegram Mini App SDK: يتيح المشاركة الأصلية من داخل تيليجرام -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <!-- داخل الـ <head> -->
