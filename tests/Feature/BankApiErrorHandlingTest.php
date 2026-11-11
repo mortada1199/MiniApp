@@ -102,6 +102,28 @@ class BankApiErrorHandlingTest extends TestCase
             ->assertSessionHas('error');
     }
 
+    public function test_customer_verify_normalizes_bank_shape(): void
+    {
+        // البنك يرجّع أسماء حقول مختلفة؛ يجب أن يطبّعها الـ proxy
+        Http::fake(['*/customer/name/*' => Http::response([
+            'customerName' => 'علي محمد',
+            'accounts' => [
+                ['accountNumber' => '12345678901234', 'accountType' => 'جاري'],
+            ],
+        ], 200)]);
+
+        $this->withSession(['token' => 't'])
+            ->getJson('/bank-api/customer/name/1234567')
+            ->assertOk()
+            ->assertJson([
+                'success' => true,
+                'name' => 'علي محمد',
+                'customerAccounts' => [
+                    ['accountNo' => '12345678901234', 'ledModelDesc' => 'جاري'],
+                ],
+            ]);
+    }
+
     public function test_logout_requires_post_and_clears_session(): void
     {
         $this->withSession(['token' => 't'])->get('/logout')->assertStatus(405);

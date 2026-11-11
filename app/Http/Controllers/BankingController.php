@@ -158,7 +158,47 @@ class BankingController extends Controller
                 ->get('/customer/name/'.rawurlencode($customerNum));
 
             if ($response->successful()) {
-                return response()->json($response->json());
+                $data = $response->json();
+
+                // تطبيع رد البنك: ابحث عن الاسم والحسابات تحت أي من الأسماء الشائعة
+                $name = data_get($data, 'name')
+                    ?? data_get($data, 'customerName')
+                    ?? data_get($data, 'fullName')
+                    ?? data_get($data, 'custName')
+                    ?? data_get($data, 'data.name')
+                    ?? data_get($data, 'customer.name')
+                    ?? data_get($data, 'result.name');
+
+                $rawAccounts = data_get($data, 'customerAccounts')
+                    ?? data_get($data, 'accounts')
+                    ?? data_get($data, 'accountList')
+                    ?? data_get($data, 'data.customerAccounts')
+                    ?? data_get($data, 'data.accounts')
+                    ?? data_get($data, 'customer.accounts')
+                    ?? [];
+
+                $accounts = collect(is_array($rawAccounts) ? $rawAccounts : [])
+                    ->map(fn ($a) => [
+                        'accountNo' => data_get($a, 'accountNo')
+                            ?? data_get($a, 'accountNumber')
+                            ?? data_get($a, 'iban')
+                            ?? data_get($a, 'acc'),
+                        'ledModelDesc' => data_get($a, 'ledModelDesc')
+                            ?? data_get($a, 'accountType')
+                            ?? data_get($a, 'productDesc')
+                            ?? data_get($a, 'desc')
+                            ?? '',
+                    ])
+                    ->filter(fn ($a) => ! empty($a['accountNo']))
+                    ->values()
+                    ->all();
+
+                return response()->json([
+                    'success' => $name !== null,
+                    'name' => $name,
+                    'customerAccounts' => $accounts,
+                    'raw' => $data, // الرد الأصلي من البنك (للتشخيص)
+                ]);
             }
             return response()->json([
                 'success' => false,
