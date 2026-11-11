@@ -1,6 +1,7 @@
 {
   "version": "0.0.1",
   "configurations": [
-    { "name": "laravel", "runtimeExecutable": "php", "runtimeArgs": ["artisan", "serve", "--port=8000"], "port": 8000 }
+    { "name": "laravel", "runtimeExecutable": "php", "runtimeArgs": ["artisan", "serve", "--port=8000"], "port": 8000 },
+    { "name": "bankworld-report", "runtimeExecutable": "node", "runtimeArgs": ["C:/Users/Dell/Videos/New-project 2025/bankworld-report/server.js"], "port": 8090 }
   ]
 }
