@@ -107,13 +107,14 @@ class BankingController extends Controller
     {
         $request->validate([
             'from_account' => 'required',
-            'bban' => 'required',
+            'to_account' => 'required|different:from_account',
             'amount' => 'required|numeric|min:1',
         ]);
 
+        // accountTo = حساب المستفيد المختار بعد "التحقق" (وليس bban الذي هو رقم البحث فقط)
         $response = $this->postTransfer([
             'accountFrom' => $request->from_account,
-            'accountTo' => $request->bban,
+            'accountTo' => $request->to_account,
             'amount' => $request->amount,
             'remarkCredit' => 'Transfer to customer',
             'remarkDebit' => 'Transfer to customer',
@@ -131,7 +132,7 @@ class BankingController extends Controller
                 'date' => now()->format('d/m/Y h:i:s A'),
                 'type' => $type,
                 'from_account' => $request->from_account,
-                'to_account' => $request->bban,
+                'to_account' => $request->to_account,
                 'client_name' => $request->customer_name,
                 'phone' => $request->phone ?? '-----',
                 'notes' => $request->note ?? '-----',

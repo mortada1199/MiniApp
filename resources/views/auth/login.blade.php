@@ -411,6 +411,13 @@
                 </div>
             @endif
 
+            @if (session('error'))
+                <div class="lg-alert error">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span>{{ session('error') }}</span>
+                </div>
+            @endif
+
             @if ($errors->any())
                 <div class="lg-alert error">
                     <i class="fas fa-exclamation-circle"></i>
