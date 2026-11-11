@@ -30,7 +30,7 @@ return [
 
     // API البنك الخارجي (Telegram Mini App backend)
     'tma' => [
-        'url' => rtrim(env('TMA_API_URL', 'https://hmxyq-196-223-156-125.free.pinggy.net/tma'), '/'),
+        'url' => rtrim(env('TMA_API_URL', ' https://dvqyt-196-223-156-125.free.pinggy.net/tma'), '/'),
         'timeout' => (int) env('TMA_API_TIMEOUT', 15),
         'connect_timeout' => (int) env('TMA_API_CONNECT_TIMEOUT', 5),
     ],
